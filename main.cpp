@@ -27,9 +27,13 @@ int main()
     *rgbImageL = cv::imread("./realwheel/Image_left.bmp", CV_LOAD_IMAGE_COLOR);//Left_wheel
     *rgbImageR = cv::imread("./realwheel/Image_right.bmp", CV_LOAD_IMAGE_COLOR);//Right_Wheel
 #elif 1
-    //竖直方向，实景
+    //竖直方向，实景,标定之前移动过
     *rgbImageL = cv::imread("./ws/up.bmp", CV_LOAD_IMAGE_COLOR);//Left_wheel
     *rgbImageR = cv::imread("./ws/down.bmp", CV_LOAD_IMAGE_COLOR);//Right_Wheel
+#elif 0
+    //2019.08.05竖直方向，标定板
+    *rgbImageL = cv::imread("./calib/top0.bmp", CV_LOAD_IMAGE_COLOR);//Left_wheel
+    *rgbImageR = cv::imread("./calib/bottom0.bmp", CV_LOAD_IMAGE_COLOR);//Right_Wheel
 #else
     //2019.08.05竖直方向，实景
     *rgbImageL = cv::imread("./calib/top_laser.bmp", CV_LOAD_IMAGE_COLOR);//Left_wheel

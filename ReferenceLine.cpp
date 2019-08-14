@@ -8,22 +8,18 @@ int referenceIn0(cv::Point2d &inputP2dPack)
     if((inputP2dPack.y >0) && (inputP2dPack.y < 240))
     {
         line_num = 0;
-        printf("line_num = 0\n");
     }
     else if((inputP2dPack.y >240) && (inputP2dPack.y < 480))
     {
         line_num = 1;
-        printf("line_num = 1\n");
     }
     else if((inputP2dPack.y >480) && (inputP2dPack.y < 720))
     {
         line_num = 2;
-        printf("line_num = 2\n");
     }
     else
     {
         line_num = 3;
-        printf("line_num = 3\n");
     }
 #if 0
     if((inputP2dPack.y >0) && (inputP2dPack.y < 320))

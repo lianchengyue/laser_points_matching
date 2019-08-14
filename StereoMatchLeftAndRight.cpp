@@ -11,6 +11,8 @@
 using namespace cv;
 
 
+#define TEMP_SET_OK
+
 //Camera Matrix
 //[fx  s   x0]
 //[0   fy  y0]
@@ -37,7 +39,7 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR, cv::Mat *offlineImageL, 
     Mat mapLx, mapLy, mapRx, mapRy;     //映射表
     Mat Rl, Rr, Pl, Pr, Q;              //校正旋转矩阵R，投影矩阵P 重投影矩阵Q
 
-#if 1
+#ifdef TEMP_SET_OK  //#if 0 //tqq
     //==========================
     Mat cameraMatrixL = (Mat_<double>(3, 3)
                          <<
@@ -131,7 +133,7 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR, cv::Mat *offlineImageL, 
 #ifdef CAMERA_HORIZONTAL
     bool isVerticalStereo =false;
 #else
-    bool isVerticalStereo =true;
+    bool isVerticalStereo =false;  //true
 #endif
 
     //Hartley算法的主要思想：
@@ -142,7 +144,7 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR, cv::Mat *offlineImageL, 
         Mat H1, H2;
         ///计算单应性矩阵, out:H1，H2
         //stereoRectifyUncalibrated(Mat(allimgpt[0]), Mat(allimgpt[1]), F, imageSize, H1, H2, 3);
-        #if 1
+        #ifdef TEMP_SET_OK  //if 0 //tqq
         H1 = (Mat_<double>(3, 3) << 0.006801632814421445, -0.0003400000458125603, 2.275447173667343,
                 -0.0005055530124645543, 0.008693998613745389, 0.5830113816035709,
                 -9.616137741016181e-07, -3.086902949154104e-08, 0.009392761548429435);

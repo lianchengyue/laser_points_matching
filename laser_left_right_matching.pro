@@ -46,6 +46,10 @@ SOURCES += \
     BindAlgorithm.cpp
 
 INCLUDEPATH += \
+#先PCL后OPENCV，防止FLANN冲突
+#pcl1.8
+/usr/local/pcl1.8.0/include/pcl-1.8 \
+/usr/include/vtk-6.3 \
 #opencv2
 #/usr/local/opencv2.4.13/include \
 #/usr/local/opencv2.4.13/include/opencv \
@@ -53,10 +57,7 @@ INCLUDEPATH += \
 /usr/local/opencv320/include \
 /usr/local/opencv320/include/opencv \
 /usr/local/opencv320/include/opencv2 \
-/usr/local/opencv320/include/opencv2/flann \
-#pcl1.8
-/usr/local/pcl1.8.0/include/pcl-1.8 \
-/usr/include/vtk-6.3 \
+#/usr/local/opencv320/include/opencv2/flann \
 
 LIBS +=  \
 #opencv2

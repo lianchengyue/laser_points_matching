@@ -42,6 +42,7 @@ int EpipolarMatch(std::vector<Point2dPack> &leftPoints, std::vector<Point2dPack>
     EpipolarPonitSort(nSlice0);
     EpipolarPonitSort(nSlice1);
     //3:左右/上下图中的激光点匹配
+    //正向匹配和反向匹配
     EpipolarPonitBind(nSlice0, nSlice1, MatchedSlice);
 
     //3.5:显示排序并分类好的图像，匹配前
@@ -63,7 +64,8 @@ int EpipolarMatch(std::vector<Point2dPack> &leftPoints, std::vector<Point2dPack>
 #endif
 
     //4:计算得到深度z
-    CalcDepthFromBeMatchedPoints(MatchedSlice);
+//    CalcDepthFromBeMatchedPoints(MatchedSlice);
+    CalcDisparityFromBeMatchedPoints(MatchedSlice);
 
 
     return 0;
