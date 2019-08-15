@@ -26,7 +26,7 @@ int main()
 #elif 0
     *rgbImageL = cv::imread("./realwheel/Image_left.bmp", CV_LOAD_IMAGE_COLOR);//Left_wheel
     *rgbImageR = cv::imread("./realwheel/Image_right.bmp", CV_LOAD_IMAGE_COLOR);//Right_Wheel
-#elif 1
+#elif 0
     //竖直方向，实景,标定之前移动过
     *rgbImageL = cv::imread("./ws/up.bmp", CV_LOAD_IMAGE_COLOR);//Left_wheel
     *rgbImageR = cv::imread("./ws/down.bmp", CV_LOAD_IMAGE_COLOR);//Right_Wheel

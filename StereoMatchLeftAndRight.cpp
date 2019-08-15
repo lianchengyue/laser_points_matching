@@ -11,7 +11,7 @@
 using namespace cv;
 
 
-#define TEMP_SET_OK
+//#define TEMP_SET_OK
 
 //Camera Matrix
 //[fx  s   x0]

@@ -200,14 +200,17 @@ int CalcDepthFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts)
 
 
 
-
+//inputMatchedPts: 数千个匹配点
+//pts_cnt: 匹配点的具体个数
 int CalcDisparityFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts, int pts_cnt)
 {
 #ifdef CAMERA_HORIZONTAL
     //视差
     DisparityAndBelonging disp_belonging;
+
     disp_belonging.Disparity = cv::Mat::zeros(HEIGHT, WIDTH, CV_64FC1);
-//    cv::Mat Disparity(HEIGHT, WIDTH, CV_64FC1, cv::Scalar(0));  //CV_8U
+    disp_belonging.DispBelonging = (int *)malloc(HEIGHT * WIDTH * sizeof(int));
+    memset(disp_belonging.DispBelonging, 0, WIDTH * HEIGHT * sizeof(int));
 
     for (int ii = 0; ii < HEIGHT; ii++)
     {
@@ -226,22 +229,33 @@ int CalcDisparityFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts, int pts_c
             double MinusValue = right_x - left_x;
 
             //计算视差
-//            Disparity.at<double>(ii, round(left_x)) =  MinusValue;
+            //disp_belonging.Disparity.at<double>(ii, round(left_x)) =  MinusValue;
+            //disp_belonging.DispBelonging[ii][(int)round(left_x)] = inputMatchedPts[ii].P2dMatchedSlice[jj].belonging;
             disp_belonging.Disparity.at<double>(ii, round(left_x)) =  MinusValue;
-            disp_belonging.DispBelonging[ii][(int)round(left_x)] = inputMatchedPts[ii].P2dMatchedSlice[jj].belonging;
+            disp_belonging.DispBelonging[ii*WIDTH + (int)round(left_x)] = inputMatchedPts[ii].P2dMatchedSlice[jj].belonging;
+
 
             printf("disp Value at point(%lf,%d)=%lf\n\n", left_x, ii, MinusValue);
+            //belonging OK
+            printf("disp belonging at point(%lf,%d)=%d\n\n", left_x, ii, disp_belonging.DispBelonging[ii*WIDTH + (int)round(left_x)]);
+
 
         }
     }
 
     imshow("Disparity", disp_belonging.Disparity);
 
+    ///Important, 计算3D坐标
+    Calc3DFromDisparity(disp_belonging, pts_cnt);
+
+    free(disp_belonging.DispBelonging);
+
     return 0;
 
 #else
     //视差, 参数3为dtype
     DisparityAndBelonging disp_belonging;
+
     disp_belonging.Disparity = cv::Mat::zeros(HEIGHT, WIDTH, CV_64FC1);
     disp_belonging.DispBelonging = (int *)malloc(HEIGHT * WIDTH * sizeof(int));
     memset(disp_belonging.DispBelonging, 0, WIDTH * HEIGHT * sizeof(int));
@@ -271,7 +285,7 @@ int CalcDisparityFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts, int pts_c
             disp_belonging.DispBelonging[(int)round(top_y) + ii*WIDTH] = inputMatchedPts[ii].P2dMatchedSlice[jj].belonging;
 
             printf("disp Value at point(%lf,%d)=%lf\n\n", ii, top_y, MinusValue);
-            //OK
+            //belonging OK
             printf("disp belonging at point(%lf,%d)=%d\n\n", ii, top_y, disp_belonging.DispBelonging[(int)round(top_y) + ii*WIDTH]);
 
         }
@@ -350,8 +364,7 @@ int Calc3DFromDisparity(DisparityAndBelonging &disp_belonging, int pts_cnt)
     #endif
     //saveXYZ("XX.pcd", xyz);
 
-    //cv::Point3d *outputP3d = new cv::Point3d[pts_cnt];
-    cv::Point3d outputP3d[pts_cnt];
+    cv::Point3d *outputP3d = new cv::Point3d[pts_cnt];
     #ifdef WITHOUT_STRUCT
     filterXYZ(xyz, outputP3d);
     #else
@@ -362,12 +375,12 @@ int Calc3DFromDisparity(DisparityAndBelonging &disp_belonging, int pts_cnt)
     fp3d = new FilteredP3d[pts_cnt];
 
     filterStructXYZ(xyz_belonging, fp3d);
+
     for(int ii=0; ii < pts_cnt; ii++)
     {
         printf("第%d个点：(%f,%f,%f)\n", ii, fp3d[ii].filterd_p3d.x, fp3d[ii].filterd_p3d.y, fp3d[ii].filterd_p3d.z);
     }
     #endif
-    //free(outputP3d);
 
     #ifdef PCL_PROCESS
     RetrievePointCloud *mPC = new RetrievePointCloud();
@@ -375,6 +388,8 @@ int Calc3DFromDisparity(DisparityAndBelonging &disp_belonging, int pts_cnt)
     mPC->GetP3dInFrame(fp3d, pts_cnt);
     #endif
 
+    //free
+    free(outputP3d);
     free(xyz_belonging.XYZBelonging);
     free(fp3d);
 }
@@ -719,28 +734,26 @@ void customizeReprojectImageTo3D2(DisparityAndBelonging disp_belonging,
                 }
 
                 //delete soon
-                #if 0
+                #if 1
                 else if(0 == dptr0[x])
                 {
                     ;
                 }
                 else
                 {
-                    printf("dptr0[%d]= %d\n", y*WIDTH + x, dptr0[x]);
+                    //1:为3D点的归属赋值. 1 or 2任选一种
+                    //printf("dptr0[%d, %d]= %lf\n", x/3, y, dptr0[x]);
+                    //xyz_belonging.XYZBelonging[WIDTH*y + x/3] = disp_belonging.DispBelonging[WIDTH*y + x/3];
                 }
                 #endif
             }
 
-            //为3D点的归属赋值
+            //2:为3D点的归属赋值. 1 or 2任选一种
             //WIDTH = cols =1280
             for(x = 0; x < cols; x++ )
             {
-                //delete soon
-                //if(0 != disp_belonging.DispBelonging[WIDTH*y + cols])
-                //{
-                //    printf("XXXXXXXXX%d = %lf\n",WIDTH*y + x, disp_belonging.DispBelonging[WIDTH*y + cols]);
-                //}
 
+                //belonging赋值
                 xyz_belonging.XYZBelonging[WIDTH*y + x] = disp_belonging.DispBelonging[WIDTH*y + x];
             }
         }
@@ -748,6 +761,10 @@ void customizeReprojectImageTo3D2(DisparityAndBelonging disp_belonging,
 
     //DEBUG output cv::Mat
     //std::cout << "xyz_belonging.XYZ:" << xyz_belonging.XYZ << std::endl;
+
+    //xyz_belonging.XYZBelonging[959*WIDTH + 838] = disp_belonging.DispBelonging[959*WIDTH + 838];
+    printf("disp_belonging at point(838,959)=%d\n\n", disp_belonging.DispBelonging[959*WIDTH + 838]);
+    printf("XYZ at point(838,959)=%d\n\n", xyz_belonging.XYZBelonging[959*WIDTH + 838]);
 }
 
 void filterXYZ(cv::Mat& inputXYZ, cv::Point3d *outputP3d)
@@ -795,7 +812,7 @@ void filterStructXYZ(XYZAndBelonging &xyz_belonging, FilteredP3d *fp3d)
                 fp3d[count_idx].filterd_p3d.z = xyz_belonging.XYZ.ptr<double>(y)[3*x+2];
 
                 //belonging
-                fp3d[count_idx].fP3dBelonging = xyz_belonging.XYZBelonging[count_idx];
+                fp3d[count_idx].fP3dBelonging = xyz_belonging.XYZBelonging[WIDTH*y + x];
 
                 count_idx++;
             }

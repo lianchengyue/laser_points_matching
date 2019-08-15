@@ -184,60 +184,6 @@ int EpipolarPonitSort(UnMatchedPoints *nSliceInput)
 
 ///3:左右图中的激光点匹配, 绑定每一行/列的激光点
 int EpipolarPonitBind(UnMatchedPoints *nSlice0, UnMatchedPoints *nSlice1, BeMatchedPoints *outputSlice, int &total_matched_cnt)
-#ifdef MATCH_COMPARE  //旧的简易匹配
-//delete soon
-{
-    BeMatchedPoints tempMatchedSlice;
-    Point2dPack tempp2dPack[2];
-
-    P2dPackMatch tempPackMatch;
-
-
-#ifdef CAMERA_HORIZONTAL
-    //两个相机横置,竖线:960
-    for (int ii = 0; ii < HEIGHT; ii++)
-#else
-    //两个相机竖直放置,横线:1280
-    for (int ii = 0; ii < WIDTH; ii++)
-#endif
-    {
-        if((0 == nSlice0[ii].Slice.size()) || (0 == nSlice1[ii].Slice.size()))
-        {
-            //IMG0, IMG1任意一张图该行/列没有激光点
-            continue;
-        }
-
-        for (int jj = 0; jj < nSlice0[ii].Slice.size()/*后续改为每一行/列匹配上的点的个数*/; jj++)
-        {
-            /**赋值**/
-            if(nSlice0[ii].Slice.size() <= nSlice1[ii].Slice.size())
-            {
-                //outputSlice[ii].P2dMatchedSlice[0].p2dPack[0];
-                //nSlice0[ii].Slice[jj];
-
-                //插入一项匹配点P2dPackMatch
-                outputSlice[ii].P2dMatchedSlice.push_back(tempPackMatch);
-                //为新插入的匹配点赋值
-                memcpy(&outputSlice[ii].P2dMatchedSlice[jj].p2dPack[0], &nSlice0[ii].Slice[jj], sizeof(Point2dPack)); //左侧的匹配点
-                memcpy(&outputSlice[ii].P2dMatchedSlice[jj].p2dPack[1], &nSlice1[ii].Slice[jj], sizeof(Point2dPack)); //右侧的匹配点
-
-                #ifdef OUTPUT_POINTS_DEBUG
-                printf("Outpoint: (%lf, %lf)\n", outputSlice[ii].P2dMatchedSlice[0].p2dPack[0].Pt2d.x, outputSlice[ii].P2dMatchedSlice[0].p2dPack[0].Pt2d.y);
-                #endif
-            }
-            //else
-            //{
-            //    tempMatchedPts.p2dPack[0].Pt2d = nSlice0[ii].Slice[jj].Pt2d;
-            //}
-
-            //push
-            //tempMatchedPts.push_back(tempMatchedPts);
-        }
-    }
-
-    return 0;
-}
-#else
 {
     P2dPackMatch tempPackMatch;
 
@@ -271,8 +217,6 @@ int EpipolarPonitBind(UnMatchedPoints *nSlice0, UnMatchedPoints *nSlice1, BeMatc
 
     return 0;
 }
-
-#endif
 
 //输入图像的激光点的总数
 int AlignedInputLaserPointsCnt(UnMatchedPoints *nSlice0, int camID)
