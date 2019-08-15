@@ -39,8 +39,8 @@ int RetrievePointCloud::RetriveInit(cv::Point3d *point_coordinate)
         }
 
         tempPts.x = (int)point_coordinate[i].x;
-        tempPts.y = (int)point_coordinate[i].y-100;
-        tempPts.z = (int)point_coordinate[i].z/10;
+        tempPts.y = (int)point_coordinate[i].y;//-100;
+        tempPts.z = (int)point_coordinate[i].z;///10;
 
         //cout << "p:" <<p.x<<","<<p.y<<","<<p.z<<endl;
 

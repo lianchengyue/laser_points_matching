@@ -46,18 +46,10 @@ int MatchAndBindAlgorithm(std::vector<Point2dPack> &Slice0, std::vector<Point2dP
 //P0点固定，逐个遍历P1点，满足条件的P1点赋值给fitterPt
 int SelectMostFitPoint(Point2dPack &inputPt0, Point2dPack &inputPt1, Point2dPack &fitterPt)
 {
-#ifdef CAMERA_HORIZONTAL
     if(fabs(inputPt0.Pt2d.x - inputPt1.Pt2d.x) < fabs(inputPt0.Pt2d.x - fitterPt.Pt2d.x))
     {
         memcpy(&fitterPt, &inputPt1, sizeof(Point2dPack));
     }
-#else
-    if(fabs(inputPt0.Pt2d.y - inputPt1.Pt2d.y) < fabs(inputPt0.Pt2d.y - fitterPt.Pt2d.y))
-    {
-        memcpy(&fitterPt, &inputPt1, sizeof(Point2dPack));
-    }
-#endif
 
-    //memcpy(&fitterPt, &inputPt1, sizeof(Point2dPack));
     return 0;
 }

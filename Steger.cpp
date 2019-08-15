@@ -183,8 +183,8 @@ int LaserPointExtract_Steger(cv::Mat *imageInput, std::vector<cv::Point2d> &p2d,
     {
         for (int j=0;j<imgrow;j++) //960
         {
-            //200:亮度门限
-            if (imageInput->at<uchar>(j,i)>200)
+            //BRIGHTNESS_THRESHHOLD:亮度门限
+            if (imageInput->at<uchar>(j,i) > BRIGHTNESS_THRESHHOLD)
             {
                 cv::Mat hessian(2, 2, CV_32FC1);
                 hessian.at<float>(0, 0) = dxx.at<float>(j, i);
@@ -209,7 +209,7 @@ int LaserPointExtract_Steger(cv::Mat *imageInput, std::vector<cv::Point2d> &p2d,
                 double nx, ny;
                 double fmaxD = 0;
                 //fabs功能：求浮点数x的绝对值
-                if (fabs(eValue.at<float>(0,0))>= fabs(eValue.at<float>(1,0))) //求特征值最大时对应的特征向量
+                if (fabs(eValue.at<float>(0,0)) >= fabs(eValue.at<float>(1,0))) //求特征值最大时对应的特征向量
                 {
                     nx = eVectors.at<float>(0, 0);
                     ny = eVectors.at<float>(0, 1);

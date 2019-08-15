@@ -16,7 +16,6 @@ int EpipolarMatch(std::vector<Point2dPack> &leftPoints, std::vector<Point2dPack>
     //两个相机输入的图中匹配点的个数
     int epiTotalBindCnt;
 
-#ifdef CAMERA_HORIZONTAL
     UnMatchedPoints nSlice0[HEIGHT];
     memset(nSlice0, 0, HEIGHT * sizeof(UnMatchedPoints));
 
@@ -26,17 +25,6 @@ int EpipolarMatch(std::vector<Point2dPack> &leftPoints, std::vector<Point2dPack>
     //匹配后的集合
     BeMatchedPoints MatchedSlice[HEIGHT];
     memset(MatchedSlice, 0, HEIGHT * sizeof(UnMatchedPoints));
-#else
-    UnMatchedPoints nSlice0[WIDTH];
-    memset(nSlice0, 0, WIDTH * sizeof(UnMatchedPoints));
-
-    UnMatchedPoints nSlice1[WIDTH];
-    memset(nSlice1, 0, WIDTH * sizeof(UnMatchedPoints));
-
-    //匹配后的集合
-    BeMatchedPoints MatchedSlice[WIDTH];
-    memset(MatchedSlice, 0, WIDTH * sizeof(UnMatchedPoints));
-#endif
 
     //1:按行/列整理顺序
     EpipolarPointOrder(leftPoints, nSlice0);  //图0
@@ -79,7 +67,6 @@ int EpipolarMatch(std::vector<Point2dPack> &leftPoints, std::vector<Point2dPack>
 ///1:按行/列整理顺序
 int EpipolarPointOrder(std::vector<Point2dPack> &PointsInput, UnMatchedPoints *nSliceOutput)
 {
-#ifdef CAMERA_HORIZONTAL
     //提取Points,按从左到右
     for (int i = 0; i < PointsInput.size(); i++)
     {
@@ -97,25 +84,6 @@ int EpipolarPointOrder(std::vector<Point2dPack> &PointsInput, UnMatchedPoints *n
             //...
         }
     }
-#else
-    //提取Points,按从左到右
-    for (int i = 0; i < PointsInput.size(); i++)
-    {
-        //判断是否是整数
-        if(0 == (PointsInput[i].Pt2d.x - (int)PointsInput[i].Pt2d.x))  //if vertical, here is x
-        {
-            ///(int)(PointsInput[i].y):当前激光点的所在行
-            ///将同一列的激光点放进该列
-            PointsInput[i].PtColIdx = PointsInput[i].Pt2d.x; //added by flq,激光线赋值
-            nSliceOutput[(int)(PointsInput[i].Pt2d.x)].Slice.push_back(PointsInput[i]);
-
-            nSliceOutput[(int)(PointsInput[i].Pt2d.x)].imgIdx = 0;
-            nSliceOutput[(int)(PointsInput[i].Pt2d.x)].colIdx = PointsInput[i].Pt2d.x;
-
-            //...
-        }
-    }
-#endif
 
     return 0;
 }
@@ -123,13 +91,11 @@ int EpipolarPointOrder(std::vector<Point2dPack> &PointsInput, UnMatchedPoints *n
 ///2:每行/列中 小->大 sort
 int EpipolarPonitSort(UnMatchedPoints *nSliceInput)
 {
-#ifdef CAMERA_HORIZONTAL
     //两个相机横置,竖线:960
     for (int ii = 0; ii < HEIGHT; ii++)
     {
         if(nSliceInput[ii].Slice.size() >1)
         {
-            //sortAlgorithm(std::vector<Point2dPack> Slice)
             //SortAlgorithm;
             //对每一行/列的激光点进行 小->大排序
             //sortRowOrColumnLaserPoint(nSliceInput[ii].Slice);  //行
@@ -150,34 +116,6 @@ int EpipolarPonitSort(UnMatchedPoints *nSliceInput)
         }
     }
     #endif
-#else
-    //两个相机竖直放置,横线:1280
-    for (int ii = 0; ii < WIDTH; ii++)
-    {
-        if(nSliceInput[ii].Slice.size() >1)
-        {
-            //sortAlgorithm(std::vector<Point2dPack> Slice)
-            //SortAlgorithm;
-            //对每一行/列的激光点进行 小->大排序
-            //sortRowOrColumnLaserPoint(nSliceInput[ii].Slice);  //行
-            //VectorSort();
-            VectorSort(nSliceInput[ii].Slice);
-        }
-
-    }
-
-    ///打印排序后的值
-    #ifdef OUTPUT_POINTS_DEBUG
-    for (int ii = 0; ii < WIDTH; ii++)
-    {
-        if(nSliceInput[ii].Slice.size() > 0)
-        {
-            for (int jj = 0; jj < nSliceInput[ii].Slice.size(); jj++)
-                printf("After Sort: Point(%f, %f):\n", nSliceInput[ii].Slice[jj].Pt2d.x, nSliceInput[ii].Slice[jj].Pt2d.y);
-        }
-    }
-    #endif
-#endif
 
     return 0;
 }
@@ -187,13 +125,8 @@ int EpipolarPonitBind(UnMatchedPoints *nSlice0, UnMatchedPoints *nSlice1, BeMatc
 {
     P2dPackMatch tempPackMatch;
 
-    #ifdef CAMERA_HORIZONTAL
-    //两个相机横置,竖线:960
+    //两个相机中的激光线显示为竖,竖线:960
     for (int ii = 0; ii < HEIGHT; ii++)
-    #else
-    //两个相机竖直放置,横线:1280
-    for (int ii = 0; ii < WIDTH; ii++)
-    #endif
     {
         if((0 == nSlice0[ii].Slice.size()) || (0 == nSlice1[ii].Slice.size()))
         {
@@ -222,13 +155,9 @@ int EpipolarPonitBind(UnMatchedPoints *nSlice0, UnMatchedPoints *nSlice1, BeMatc
 int AlignedInputLaserPointsCnt(UnMatchedPoints *nSlice0, int camID)
 {
     int total_input_pts_cnt = 0;
-    #ifdef CAMERA_HORIZONTAL
+
     //两个相机横置,竖线:960
     for (int ii = 0; ii < HEIGHT; ii++)
-    #else
-    //两个相机竖直放置,横线:1280
-    for (int ii = 0; ii < WIDTH; ii++)
-    #endif
     {
         total_input_pts_cnt += nSlice0[ii].Slice.size();
 
@@ -242,13 +171,9 @@ int AlignedInputLaserPointsCnt(UnMatchedPoints *nSlice0, int camID)
 int MatchedPointsCnt(BeMatchedPoints *outputSlice)
 {
     int total_matched_pts_cnt = 0;
-    #ifdef CAMERA_HORIZONTAL
+
     //两个相机横置,竖线:960
     for (int ii = 0; ii < HEIGHT; ii++)
-    #else
-    //两个相机竖直放置,横线:1280
-    for (int ii = 0; ii < WIDTH; ii++)
-    #endif
     {
         total_matched_pts_cnt += outputSlice[ii].P2dMatchedSlice.size();
 

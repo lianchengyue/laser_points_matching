@@ -16,11 +16,8 @@ struct Point2dPack
 {
     int PtBelonging;  //该点属于第idx条激光
     int PtImgIdx;  //第idx幅图像.   0:left  1:right
-#ifdef CAMERA_HORIZONTAL
     int PtRowIdx;  //第idx行
-#else
-    int PtColIdx;  //第idx列
-#endif
+
     cv::Point2d Pt2d;  //该点的2d坐标
 };
 
@@ -36,11 +33,8 @@ struct P2dPackMatch
 struct UnMatchedPoints
 {
     std::vector<Point2dPack> Slice;  //特定的某一行或者列
-#ifdef CAMERA_HORIZONTAL
     int rowIdx;  //第idx行
-#else
-    int colIdx;  //第idx列
-#endif
+
     int imgIdx;  //第idx幅图像
     //int laserIdx;  //第idx条激光线
 };
@@ -48,11 +42,7 @@ struct UnMatchedPoints
 //已匹配点的结构体
 struct BeMatchedPoints
 {
-    #ifdef CAMERA_HORIZONTAL
-        int BMRowIdx;  //第idx行
-    #else
-        int BMColIdx;  //第idx列
-    #endif
+    int BMRowIdx;  //第idx行
 
     std::vector<P2dPackMatch> P2dMatchedSlice;
 };

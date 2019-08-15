@@ -5,7 +5,7 @@
 
 /***************根据匹配点，得到视差与深度************/
 
-//void get_point(cv::Point2f &left1, cv::Point2f& right1)
+//void Calc_point(cv::Point2f &left1, cv::Point2f& right1)
 //{
 //    double fx = 454.025;//像素
 //
@@ -28,7 +28,6 @@
 
 int CalcDepthFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts)
 {
-#ifdef CAMERA_HORIZONTAL
     #if 0
     for (int ii = 0; ii < HEIGHT; ii++)
     {
@@ -106,106 +105,13 @@ int CalcDepthFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts)
     #endif
 
     return 0;
-
-#else
-    #if 0
-    for (int ii = 0; ii < WIDTH; ii++)
-    {
-        if((0 == inputMatchedPts[ii].P2dMatchedSlice.size()))
-        {
-            //IMG0, IMG1任意一张图该行/列没有激光点
-            continue;
-        }
-
-        printf("OutpointY: (%lf, %lf)\n", inputMatchedPts[ii].P2dMatchedSlice[0].p2dPack[0].Pt2d.x, inputMatchedPts[ii].P2dMatchedSlice[0].p2dPack[0].Pt2d.y);
-    }
-    #endif
-
-    double X, Y, Z;
-    double baseline = 400;//单位: mm
-    double fx = 2232.550777775964;
-    double fy = 2231.856456030659;
-    double cx = 2232.550777775964;
-    double cy = 2232.550777775964;
-    int total_num = 0;
-    int count = 0;
-
-    //视差
-    cv::Mat Disparity(HEIGHT, WIDTH, CV_64FC1, cv::Scalar(0));  //CV_8U
-
-    cv::Point3d *pp3d = new cv::Point3d[WIDTH * HEIGHT];
-    cv::Point3d *pp3d2 = new cv::Point3d[3167];
-    //#ifdef PCL_PROCESS
-    //RetrievePointCloud *mPC = new RetrievePointCloud();
-    //#endif
-
-    for (int ii = 0; ii < WIDTH; ii++)
-    {
-        //该行/列没有匹配点
-        if(0 == inputMatchedPts[ii].P2dMatchedSlice.size())
-        {
-            continue;
-        }
-
-        total_num += inputMatchedPts[ii].P2dMatchedSlice.size();
-
-        //该行/列有匹配点
-        for(int jj = 0; jj < inputMatchedPts[ii].P2dMatchedSlice.size(); jj++ )
-        {
-            double top_y = inputMatchedPts[ii].P2dMatchedSlice[jj].p2dPack[0].Pt2d.y;
-            double bottom_y = inputMatchedPts[ii].P2dMatchedSlice[jj].p2dPack[1].Pt2d.y;
-
-            double top_x = ii;
-
-            //计算视差
-            //double Z = fx * baseline / (left1.x - right1.x);
-            //double  X = (left1.x - cx)*Z / fx;
-            //double  Y = (left1.y - cy)*Z / fy;
-            Z = fx * baseline / (top_y - bottom_y);  //暂时让为正
-            //modified by flq, 显示错误
-            //Disparity.at<double>(ii, round(top_y)) =  Z;
-            Disparity.at<double>(round(top_y), ii) =  Z;
-
-            printf("上下两个点的坐标：(%lf,%d), (%lf,%d)\n", ii, top_y, ii, bottom_y);
-            printf("fx * baseline=%lf, left_x - right_x=%lf\n", fx * baseline, bottom_y - top_y);
-            printf("Z at point(%lf,%d)=%lf\n\n", ii, top_y, Z);
-
-
-            X = (top_y - cx) * Z / fx;
-            Y = (top_x - cy) * Z / fy;
-
-            cv::Point3d p3d = cv::Point3d(X,Y,Z);
-            std::cout << "空间坐标" << p3d << std::endl << std::endl;
-
-            pp3d[ii*HEIGHT + (int)(inputMatchedPts[ii].P2dMatchedSlice[jj].p2dPack[0].Pt2d.x)].x = X;
-            pp3d[ii*HEIGHT + (int)(inputMatchedPts[ii].P2dMatchedSlice[jj].p2dPack[0].Pt2d.x)].y = Y;
-            pp3d[ii*HEIGHT + (int)(inputMatchedPts[ii].P2dMatchedSlice[jj].p2dPack[0].Pt2d.x)].z = Z;
-
-            count++;
-
-        }
-    }
-
-    printf("\n视差图中总计有%d对匹配点\n\n", total_num);
-
-    imshow("Disparity", Disparity);
-    //#ifdef PCL_PROCESS
-    //mPC->RetriveInit(pp3d2);
-    //#endif
-
-    return 0;
-
-#endif
 }
-
-
 
 //inputMatchedPts: 数千个匹配点
 //pts_cnt: 匹配点的具体个数
 int CalcDisparityFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts, int pts_cnt)
 {
-#ifdef CAMERA_HORIZONTAL
-    //视差
+    //视差, 参数3为dtype
     DisparityAndBelonging disp_belonging;
 
     disp_belonging.Disparity = cv::Mat::zeros(HEIGHT, WIDTH, CV_64FC1);
@@ -214,13 +120,13 @@ int CalcDisparityFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts, int pts_c
 
     for (int ii = 0; ii < HEIGHT; ii++)
     {
-        //该行/列没有匹配点
+        //该行没有匹配点
         if(0 == inputMatchedPts[ii].P2dMatchedSlice.size())
         {
             continue;
         }
 
-        //该行/列有匹配点
+        //该行有匹配点
         for(int jj = 0; jj < inputMatchedPts[ii].P2dMatchedSlice.size(); jj++ )
         {
             double left_x = inputMatchedPts[ii].P2dMatchedSlice[jj].p2dPack[0].Pt2d.x;
@@ -229,6 +135,7 @@ int CalcDisparityFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts, int pts_c
             double MinusValue = right_x - left_x;
 
             //计算视差
+            //modified by flq, 显示错误
             //disp_belonging.Disparity.at<double>(ii, round(left_x)) =  MinusValue;
             //disp_belonging.DispBelonging[ii][(int)round(left_x)] = inputMatchedPts[ii].P2dMatchedSlice[jj].belonging;
             disp_belonging.Disparity.at<double>(ii, round(left_x)) =  MinusValue;
@@ -251,55 +158,6 @@ int CalcDisparityFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts, int pts_c
     free(disp_belonging.DispBelonging);
 
     return 0;
-
-#else
-    //视差, 参数3为dtype
-    DisparityAndBelonging disp_belonging;
-
-    disp_belonging.Disparity = cv::Mat::zeros(HEIGHT, WIDTH, CV_64FC1);
-    disp_belonging.DispBelonging = (int *)malloc(HEIGHT * WIDTH * sizeof(int));
-    memset(disp_belonging.DispBelonging, 0, WIDTH * HEIGHT * sizeof(int));
-
-    //cv::Mat Disparity(HEIGHT, WIDTH, CV_64FC1, cv::Scalar(0));  //CV_8U   CV_32S  CV_32SC1 CV_64FC1
-
-    for (int ii = 0; ii < WIDTH; ii++)
-    {
-        //该行/列没有匹配点
-        if(0 == inputMatchedPts[ii].P2dMatchedSlice.size())
-        {
-            continue;
-        }
-
-        //该行/列有匹配点
-        for(int jj = 0; jj < inputMatchedPts[ii].P2dMatchedSlice.size(); jj++ )
-        {
-            double top_y = inputMatchedPts[ii].P2dMatchedSlice[jj].p2dPack[0].Pt2d.y;
-            double bottom_y = inputMatchedPts[ii].P2dMatchedSlice[jj].p2dPack[1].Pt2d.y;
-
-            int MinusValue = top_y - bottom_y;
-
-            //计算视差
-            //modified by flq, 显示错误
-            //Disparity.at<double>(round(top_y), ii) =  MinusValue;
-            disp_belonging.Disparity.at<double>(round(top_y), ii) =  MinusValue;
-            disp_belonging.DispBelonging[(int)round(top_y) + ii*WIDTH] = inputMatchedPts[ii].P2dMatchedSlice[jj].belonging;
-
-            printf("disp Value at point(%lf,%d)=%lf\n\n", ii, top_y, MinusValue);
-            //belonging OK
-            printf("disp belonging at point(%lf,%d)=%d\n\n", ii, top_y, disp_belonging.DispBelonging[(int)round(top_y) + ii*WIDTH]);
-
-        }
-    }
-
-    imshow("Disparity", disp_belonging.Disparity);
-
-    ///Important, 计算3D坐标
-    Calc3DFromDisparity(disp_belonging, pts_cnt);
-
-    free(disp_belonging.DispBelonging);
-    return 0;
-
-#endif
 }
 /*
 //https://blog.csdn.net/Gordon_Wei/article/details/86319058
@@ -561,13 +419,10 @@ void customizeReprojectImageTo3D(cv::InputArray _disparity,
                 int ival = cvRound(dptr[x]);
                 dptr0[x] = ival;
 
-                if(-2147483648 == dptr0[x])
+                if(-2147483648 == dptr0[x])  //-inf == -2147483648.000000
                 {
                     dptr0[x] = 0;
                 }
-
-                //-inf == -2147483648.000000
-                //printf("dptr0[%d]= %d\n", x, dptr0[x]);
             }
         }
     }
@@ -585,22 +440,6 @@ void customizeReprojectImageTo3D2(DisparityAndBelonging disp_belonging,
     int stype = disparity.type();  //CV_64FC1
     printf("stype=%d,CV_64FC1=%d\n", stype, CV_64FC1);  //all=6
     printf("dtype=%d,CV_MAKETYPE(dtype, 1)=%d\n", dtype, CV_MAKETYPE(dtype, 3));  //all=6
-
-
-    //int dtype = CV_32FC3;  //CV_16SC3, CV_32SC3, CV_32FC3
-    //判断条件
-    //CV_Assert( stype == CV_8UC1 || stype == CV_16SC1 ||
-    //           stype == CV_32SC1 || stype == CV_32FC1 );
-    //CV_Assert( Q.size() == cv::Size(4,4) );
-    //
-    //if( dtype < 0 )
-    //    dtype = CV_32FC3;
-    //else
-    //{
-    //    dtype = CV_MAKETYPE(CV_MAT_DEPTH(dtype), 3);
-    //    CV_Assert( dtype == CV_16SC3 || dtype == CV_32SC3 || dtype == CV_32FC3 );
-    //}
-    //判断条件end
 
     //定义见/opencv-3.2.0/modules/core/include/opencv2/core/hal/interface.h
     ///xyz_belonging.XYZ.create(disparity.size(), /*or CV_MAKETYPE(CV_64F,3)*/CV_64FC3);
@@ -763,8 +602,8 @@ void customizeReprojectImageTo3D2(DisparityAndBelonging disp_belonging,
     //std::cout << "xyz_belonging.XYZ:" << xyz_belonging.XYZ << std::endl;
 
     //xyz_belonging.XYZBelonging[959*WIDTH + 838] = disp_belonging.DispBelonging[959*WIDTH + 838];
-    printf("disp_belonging at point(838,959)=%d\n\n", disp_belonging.DispBelonging[959*WIDTH + 838]);
-    printf("XYZ at point(838,959)=%d\n\n", xyz_belonging.XYZBelonging[959*WIDTH + 838]);
+    //printf("disp_belonging at point(838,959)=%d\n\n", disp_belonging.DispBelonging[959*WIDTH + 838]);
+    //printf("XYZ at point(838,959)=%d\n\n", xyz_belonging.XYZBelonging[959*WIDTH + 838]);
 }
 
 void filterXYZ(cv::Mat& inputXYZ, cv::Point3d *outputP3d)
@@ -789,7 +628,6 @@ void filterXYZ(cv::Mat& inputXYZ, cv::Point3d *outputP3d)
             }
         }
     }
-
 }
 
 void filterStructXYZ(XYZAndBelonging &xyz_belonging, FilteredP3d *fp3d)
@@ -818,10 +656,4 @@ void filterStructXYZ(XYZAndBelonging &xyz_belonging, FilteredP3d *fp3d)
             }
         }
     }
-
-//    for(int ii=0; ii < 3012; ii++)
-//    {
-//        printf("第%d个点：(%lf,%lf,%lf)\n", ii, fp3d[ii].filterd_p3d.x, fp3d[ii].filterd_p3d.y, fp3d[ii].filterd_p3d.z);
-//    }
-
 }

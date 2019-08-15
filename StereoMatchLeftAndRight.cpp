@@ -130,11 +130,7 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR, cv::Mat *offlineImageL, 
     std::cout << "Pr"  << Pr << std::endl;
     std::cout << "Q"  << Q << std::endl;
 
-#ifdef CAMERA_HORIZONTAL
     bool isVerticalStereo =false;
-#else
-    bool isVerticalStereo =false;  //true
-#endif
 
     //Hartley算法的主要思想：
     //1：通过对右图进行H2变换，把右图图像上的外极点映射到水平方向上的无穷远点，使右图图像上的外极线相互平行，并且平行于图像的水平扫描线;

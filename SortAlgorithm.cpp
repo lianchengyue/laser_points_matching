@@ -9,14 +9,8 @@ using namespace std;
 int sortRowOrColumnLaserPoint(std::vector<Point2dPack> &inputData)  //行
 {
 
-#ifdef CAMERA_HORIZONTAL
-#else
-#endif
-
     return 0;
 }
-
-
 
 //https://blog.csdn.net/m372897500/article/details/51478136
 //八种排序算法效率比较
@@ -114,11 +108,7 @@ int VectorSort()
 //排序函数，升序排列
 bool UppersortFunc(const Point2dPack &pack1, const Point2dPack &pack2)
 {
-    #ifdef CAMERA_HORIZONTAL
     return pack1.Pt2d.x < pack2.Pt2d.x;//升序排列
-    #else
-    return pack1.Pt2d.y < pack2.Pt2d.y;//升序排列
-    #endif
 }
 
 int VectorSort(std::vector<Point2dPack> &inputData)
