@@ -73,4 +73,73 @@ int RetrievePointCloud::RetriveInit(cv::Point3d *point_coordinate)
 
     return 0;
 }
+
+//filtered 3d points input
+int RetrievePointCloud::GetP3dInFrame(FilteredP3d *f_p3d, int pts_cnt)
+{
+    for(int i=0; i<pts_cnt; i++) //height
+    {
+        //去除(0，0，0)点
+        if(!(f_p3d[i].filterd_p3d.x && f_p3d[i].filterd_p3d.y && f_p3d[i].filterd_p3d.z))
+        {
+            continue;
+        }
+
+        tempPts.x = (int)f_p3d[i].filterd_p3d.x;
+        tempPts.y = (int)f_p3d[i].filterd_p3d.y-100;
+        tempPts.z = (int)f_p3d[i].filterd_p3d.z/10;
+
+        //上色
+        if(0 == f_p3d[i].fP3dBelonging % 4)
+        {
+            tempPts.r = 255;
+            tempPts.g = 0;
+            tempPts.b = 0;
+        }
+        else if(1 == f_p3d[i].fP3dBelonging % 4)
+        {
+            tempPts.r = 0;
+            tempPts.g = 255;
+            tempPts.b = 0;
+        }
+        else if(2 == f_p3d[i].fP3dBelonging % 4)
+        {
+            tempPts.r = 0;
+            tempPts.g = 0;
+            tempPts.b = 255;
+        }
+        else if(3 == f_p3d[i].fP3dBelonging % 4)
+        {
+            tempPts.r = 255;
+            tempPts.g = 255;
+            tempPts.b = 0;
+        }
+
+        Lasercloud->push_back(tempPts);
+    }
+
+    cout << "Lasercloud num=" << Lasercloud->width << endl;
+    pcl::io::savePCDFile("./dump/input.pcd",*Lasercloud);
+
+    //added by flq
+    //pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
+    //
+    //pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
+    //sor.setInputCloud(Lasercloud);
+    //sor.setMeanK(50);
+    //sor.setStddevMulThresh(1.0);
+    //sor.filter(*cloud_filtered);
+
+    //viewer.showCloud(cloud_filtered);
+    //added end
+
+    //Display
+    viewer.showCloud(Lasercloud);
+
+    //Lasercloud->clear();
+
+    //while (!viewer.wasStopped ());
+
+    return 0;
+}
 #endif

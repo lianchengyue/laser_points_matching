@@ -13,6 +13,9 @@
 //3:左右图中的激光点匹配
 int EpipolarMatch(std::vector<Point2dPack> &leftPoints, std::vector<Point2dPack> &rightPoints)
 {
+    //两个相机输入的图中匹配点的个数
+    int epiTotalBindCnt;
+
 #ifdef CAMERA_HORIZONTAL
     UnMatchedPoints nSlice0[HEIGHT];
     memset(nSlice0, 0, HEIGHT * sizeof(UnMatchedPoints));
@@ -43,7 +46,9 @@ int EpipolarMatch(std::vector<Point2dPack> &leftPoints, std::vector<Point2dPack>
     EpipolarPonitSort(nSlice1);
     //3:左右/上下图中的激光点匹配
     //正向匹配和反向匹配
-    EpipolarPonitBind(nSlice0, nSlice1, MatchedSlice);
+    EpipolarPonitBind(nSlice0, nSlice1, MatchedSlice, epiTotalBindCnt);
+    //打印程序中需要用到的总点数
+    printf("epiTotalBindCnt=%d\n", epiTotalBindCnt);
 
     //3.5:显示排序并分类好的图像，匹配前
     DisplayUnmatchedImg0(nSlice0);
@@ -65,7 +70,7 @@ int EpipolarMatch(std::vector<Point2dPack> &leftPoints, std::vector<Point2dPack>
 
     //4:计算得到深度z
 //    CalcDepthFromBeMatchedPoints(MatchedSlice);
-    CalcDisparityFromBeMatchedPoints(MatchedSlice);
+    CalcDisparityFromBeMatchedPoints(MatchedSlice, epiTotalBindCnt);
 
 
     return 0;
@@ -178,8 +183,9 @@ int EpipolarPonitSort(UnMatchedPoints *nSliceInput)
 }
 
 ///3:左右图中的激光点匹配, 绑定每一行/列的激光点
-int EpipolarPonitBind(UnMatchedPoints *nSlice0, UnMatchedPoints *nSlice1, BeMatchedPoints *outputSlice)
+int EpipolarPonitBind(UnMatchedPoints *nSlice0, UnMatchedPoints *nSlice1, BeMatchedPoints *outputSlice, int &total_matched_cnt)
 #ifdef MATCH_COMPARE  //旧的简易匹配
+//delete soon
 {
     BeMatchedPoints tempMatchedSlice;
     Point2dPack tempp2dPack[2];
@@ -259,9 +265,9 @@ int EpipolarPonitBind(UnMatchedPoints *nSlice0, UnMatchedPoints *nSlice1, BeMatc
     //输入的激光点总数
     AlignedInputLaserPointsCnt(nSlice0, 0);
     AlignedInputLaserPointsCnt(nSlice1, 1);
-    //统计匹配的激光点的总数
-    MatchedPointsCnt(outputSlice);
     #endif
+    //统计匹配的激光点的总数
+    total_matched_cnt = MatchedPointsCnt(outputSlice);
 
     return 0;
 }

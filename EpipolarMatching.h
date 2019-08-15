@@ -18,7 +18,7 @@ int EpipolarPointOrder(std::vector<Point2dPack> &PointsInput, UnMatchedPoints  *
 ///2:每行/列中 小->大 sort
 int EpipolarPonitSort(UnMatchedPoints *nSliceInput);
 ///3:左右图中的激光点匹配
-int EpipolarPonitBind(UnMatchedPoints *nSliceLeft, UnMatchedPoints *nSliceRight, BeMatchedPoints *outputSlice);
+int EpipolarPonitBind(UnMatchedPoints *nSliceLeft, UnMatchedPoints *nSliceRight, BeMatchedPoints *outputSlice, int &total_matched_cnt);
 
 
 //输入图像的激光点的总数

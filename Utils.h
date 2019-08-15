@@ -57,18 +57,26 @@ struct BeMatchedPoints
     std::vector<P2dPackMatch> P2dMatchedSlice;
 };
 
-//匹配得到的视差与激光线归属
+//匹配得到的视差与激光线归属, W*H个点
 struct DisparityAndBelonging
 {
     cv::Mat Disparity;  //视差
-    int DispBelonging[HEIGHT][WIDTH];  //激光线归属,[HEIGHT][WIDTH]与Mat匹配
+    int *DispBelonging;  //激光线归属,[HEIGHT][WIDTH]与Mat匹配
 };
 
+//通过2D特征点得到的空间坐标, W*H个点
 struct XYZAndBelonging
 {
     cv::Mat XYZ;  //空间坐标
-    //int XYZBelonging[HEIGHT][WIDTH];  //激光线归属,[HEIGHT][WIDTH]与Mat匹配
+    int *XYZBelonging;  //激光线归属,[HEIGHT][WIDTH]与Mat匹配
 };
 
+//与上面结构体不同，FilteredP3d描述一个点
+struct FilteredP3d
+{
+    cv::Point3d filterd_p3d;
+    int fP3dBelonging;
+
+};
 
 #endif // UTILS_H

@@ -39,6 +39,7 @@ public:
     ~RetrievePointCloud();
 
     int RetriveInit(/*cv::Point3_<float>*/cv::Point3d *point_coordinate);
+    int GetP3dInFrame(FilteredP3d *f_p3d, int pts_cnt);
 
 //    pcl::visualization::CloudViewer viewer;
 
