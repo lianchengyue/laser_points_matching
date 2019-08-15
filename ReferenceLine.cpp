@@ -6,15 +6,15 @@ int referenceIn0(cv::Point2d &inputP2dPack)
     int line_num = -1;
 
 #if 1//def CAMERA_HORIZONTAL
-    if((inputP2dPack.x >0) && (inputP2dPack.x < 240))
+    if((inputP2dPack.x >0) && (inputP2dPack.x < 400))//240
     {
         line_num = 0;
     }
-    else if((inputP2dPack.x >240) && (inputP2dPack.x < 480))
+    else if((inputP2dPack.x >400) && (inputP2dPack.x < 590/*520*/))//480
     {
         line_num = 1;
     }
-    else if((inputP2dPack.x >480) && (inputP2dPack.x < 720))
+    else if((inputP2dPack.x >590/*520*/) && (inputP2dPack.x < 820))//720
     {
         line_num = 2;
     }
@@ -50,15 +50,15 @@ int referenceIn1(cv::Point2d &inputP2dPack)
     int line_num = -1;
 
 #if 1//def CAMERA_HORIZONTAL
-    if((inputP2dPack.x >0) && (inputP2dPack.x < 240))
+    if((inputP2dPack.x >0) && (inputP2dPack.x < 400))  //240
     {
         line_num = 0;
     }
-    else if((inputP2dPack.x >240) && (inputP2dPack.x < 480))
+    else if((inputP2dPack.x >400) && (inputP2dPack.x < 590)) //480
     {
         line_num = 1;
     }
-    else if((inputP2dPack.x >480) && (inputP2dPack.x < 720))
+    else if((inputP2dPack.x >590) && (inputP2dPack.x < 820))  //720
     {
         line_num = 2;
     }

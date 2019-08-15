@@ -19,7 +19,7 @@ int DisplayUnmatchedImg0(UnMatchedPoints *nSliceInput)
                 //上色
                 if(0 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
                 {
-                    disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(255, 0, 0);
+                    disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(0, 0, 255);
                 }
                 else if(1 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
                 {
@@ -27,7 +27,7 @@ int DisplayUnmatchedImg0(UnMatchedPoints *nSliceInput)
                 }
                 else if(2 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
                 {
-                    disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(0, 0, 255);
+                    disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(255, 0, 0);
                 }
                 else if(3 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
                 {
@@ -48,7 +48,7 @@ int DisplayUnmatchedImg0(UnMatchedPoints *nSliceInput)
             //上色
             if(0 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
             {
-                disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(255, 0, 0);
+                disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(0, 0, 255);
             }
             else if(1 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
             {
@@ -56,7 +56,7 @@ int DisplayUnmatchedImg0(UnMatchedPoints *nSliceInput)
             }
             else if(2 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
             {
-                disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(0, 0, 255);
+                disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(255, 0, 0);
             }
             else if(3 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
             {
@@ -89,7 +89,7 @@ int DisplayUnmatchedImg1(UnMatchedPoints *nSliceInput)
                 //上色
                 if(0 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
                 {
-                    disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(255, 0, 0);
+                    disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(0, 0, 255);
                 }
                 else if(1 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
                 {
@@ -97,7 +97,7 @@ int DisplayUnmatchedImg1(UnMatchedPoints *nSliceInput)
                 }
                 else if(2 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
                 {
-                    disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(0, 0, 255);
+                    disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(255, 0, 0);
                 }
                 else if(3 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
                 {
@@ -118,7 +118,7 @@ int DisplayUnmatchedImg1(UnMatchedPoints *nSliceInput)
             //上色
             if(0 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
             {
-                disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(255, 0, 0);
+                disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(0, 0, 255);
             }
             else if(1 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
             {
@@ -126,7 +126,7 @@ int DisplayUnmatchedImg1(UnMatchedPoints *nSliceInput)
             }
             else if(2 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
             {
-                disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(0, 0, 255);
+                disImg.at<cv::Vec3b>(yy, xx) = cv::Vec3b(255, 0, 0);
             }
             else if(3 == nSliceInput[ii].Slice[jj].PtBelonging % 4)
             {
