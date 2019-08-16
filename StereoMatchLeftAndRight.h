@@ -7,6 +7,6 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/core/utility.hpp"
 
-int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR, cv::Mat *offlineImageL, cv::Mat *offlineImageR);
+int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR);
 
 #endif // STEREOCALIBLEFTANDRIGHT_H

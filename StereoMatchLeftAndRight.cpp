@@ -17,7 +17,7 @@ using namespace cv;
 //[fx  s   x0]
 //[0   fy  y0]
 //[0   0   1 ]
-int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR, cv::Mat *offlineImageL, cv::Mat *offlineImageR)
+int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR)
 {
 
     Size imageSize = Size(WIDTH, HEIGHT);
@@ -195,8 +195,7 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR, cv::Mat *offlineImageL, 
     //rectangle(rgbrectifyImage1, validROIR, Scalar(0, 0, 255), 3, 8);
     imshow("ImageL After Rectify", rgbrectifyImage0);
     imshow("ImageR After Rectify", rgbrectifyImage1);
-    //imwrite("./rgbrectifyImage0.png", rgbrectifyImage0);
-    //imwrite("../rgbrectifyImage1.png", rgbrectifyImage1);
+
     //显示在同一张图上
     Mat canvas;
     double sf;
@@ -221,7 +220,6 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR, cv::Mat *offlineImageL, 
 
     ////Display
     //左/上图像画到画布上
-    //Mat canvasPart = canvas(Rect(w * 0, 0, w, h));                                //得到画布的一部分
     Mat canvasPart = !isVerticalStereo ?
                         canvas(Rect(w * 0, 0, w, h)) : canvas(Rect(0, h*0, w, h));  //得到画布的一部分
     resize(rgbrectifyImage0, canvasPart, canvasPart.size(), 0, 0, INTER_AREA);     //把图像缩放到跟canvasPart一样大小
@@ -231,14 +229,13 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR, cv::Mat *offlineImageL, 
     std::cout << "Painted ImageL" << std::endl;
 
     //右/下图像画到画布上
-    //canvasPart = canvas(Rect(w * 1, 0, w, h));                                      //获得画布的另一部分
     canvasPart = !isVerticalStereo ?
                 canvas(Rect(w * 1, 0, w, h)) : canvas(Rect(0, h*1, w, h));            //获得画布的另一部分
 
     resize(rgbrectifyImage1, canvasPart, canvasPart.size(), 0, 0, INTER_LINEAR);
     Rect vroiR(cvRound(validROIR.x * sf), cvRound(validROIR.y*sf),
         cvRound(validROIR.width * sf), cvRound(validROIR.height * sf));
-    //rectangle(canvasPart, vroiR, Scalar(0, 0, 255), 3, 8);
+
     std::cout << "Painted ImageR" << std::endl;
 
     //画上对应的线条
@@ -270,9 +267,9 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR, cv::Mat *offlineImageL, 
     std::vector<cv::Point2d>().swap(img1_pts);
 #if 0
     //Zhang方法
-    LaserPointExtract_Zhang(LaserInputImage0, offlineImageL, img0_pts, 0); //rgbrectifyImage0
+    LaserPointExtract_Zhang(LaserInputImage0, img0_pts, 0); //rgbrectifyImage0
 
-    LaserPointExtract_Zhang(LaserInputImage1, offlineImageR, img1_pts, 1); //rgbrectifyImage1
+    LaserPointExtract_Zhang(LaserInputImage1, img1_pts, 1); //rgbrectifyImage1
 #else
     //Steger方法
     LaserPointExtract_Steger(LaserInputImage0, img0_pts, 0); //rgbrectifyImage0

@@ -9,7 +9,6 @@
 int main()
 {
     cv::Mat *rgbImageL, *rgbImageR;
-    cv::Mat *offlineImageL, *offlineImageR;
 
     rgbImageL = new cv::Mat(cv::Mat::zeros(960, 1280, CV_8UC3)); //CV_8U
     rgbImageR = new cv::Mat(cv::Mat::zeros(960, 1280, CV_8UC3)); //CV_8U
@@ -40,7 +39,7 @@ int main()
     *rgbImageR = cv::imread("./calib/bottom_laser.bmp", CV_LOAD_IMAGE_COLOR);//Right_Wheel
 #endif
 
-    StereoMatch(rgbImageL, rgbImageR, offlineImageL, offlineImageR);
+    StereoMatch(rgbImageL, rgbImageR);
 
     cv::waitKey(0);
 

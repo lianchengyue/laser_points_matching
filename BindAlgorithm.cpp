@@ -3,6 +3,7 @@
 /*********************多线激光的匹配********************/
 int MatchAndBindAlgorithm(std::vector<Point2dPack> &Slice0, std::vector<Point2dPack> &Slice1, std::vector<P2dPackMatch> &outputMatchedSlice)
 {
+    //未优化
 #if 0
     P2dPackMatch tempPackMatch;
     Point2dPack tempfitPoint;

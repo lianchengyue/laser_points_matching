@@ -210,89 +210,16 @@ void extractPoint(Mat& inputimg, vector<Point2d>& pt)
     pt.push_back(Point2d(0, 0));
 }
 
-
-int LaserPointExtract()
-{
-    cv::namedWindow("h", CV_WINDOW_NORMAL | CV_WINDOW_FREERATIO | CV_GUI_EXPANDED);//CV_WINDOW_NORMAL
-    cv::namedWindow("w", CV_WINDOW_NORMAL | CV_WINDOW_FREERATIO | CV_GUI_EXPANDED);
-
-    //ofstream of1, of2;
-    //of1.open("x.txt", ios::trunc);
-    //of2.open("y.txt", ios::trunc);
-    Mat img, img1, img2;
-    //img = imread("./twoline/Left.bmp");
-    img = imread("./twoline/Left_wheel.bmp");
-    cvtColor(img, img, CV_RGB2GRAY);
-    //对图像进行平滑处理
-    GaussianBlur(img, img, Size(3, 3), 0);
-    img.copyTo(img2);
-    //图像的二值化,  3==THRESH_TRUNC
-    threshold(img, img, 95/*95*/, 255, THRESH_BINARY);
-
-    //zhang-suen法，去掉额外的亮点
-    zhang(img, img1);
-    vector<Point2d> points;
-
-    //找到图像中的亮点
-    extractPoint(img1, points);
-
-    vector<double> kcal;
-    for (int i = 1; i < points.size() - 1; i++)
-    {
-        //normal
-        double pfCosSita=0, pfSinSita=0;
-        CalcNormVec(Point2d(points[i - 1].x, points[i - 1].y), Point2d(points[i].x, points[i].y), Point2d(points[i + 1].x, points[i + 1].y), pfCosSita, pfSinSita);
-        //gdd
-        double sum=0, sum_sumx=0, sum_sumy=0;
-        for (int j = 0; j < 2; j++)
-        {
-            if (j == 0)
-            {
-                double cj = points[i].x;
-                double ci = points[i].y;
-                sum = ijpixel(cj, ci, img2);
-                sum_sumx = ijpixel(cj, ci, img2)*cj;
-                sum_sumy = ijpixel(cj, ci, img2)*ci;
-            }
-            else
-            {
-                double x_cor = points[i].x + j*pfCosSita;
-                double y_cor = points[i].y + j*pfSinSita;
-                double x_cor1 = points[i].x - j*pfCosSita;
-                double y_cor1 = points[i].y - j*pfSinSita;
-                sum = sum + ijpixel(x_cor, y_cor, img2) + ijpixel(x_cor1, y_cor1, img2);
-                sum_sumx = sum_sumx + ijpixel(x_cor, y_cor, img2)*x_cor + ijpixel(x_cor1, y_cor1, img2)*x_cor1;
-                sum_sumy = sum_sumy + ijpixel(x_cor, y_cor, img2)*y_cor + ijpixel(x_cor1, y_cor1, img2)*y_cor1;
-            }
-        }
-        //图像中心线画出来
-        circle(img1, Point(sum_sumx / sum, sum_sumy / sum), 1, Scalar(255, 255, 255));
-#ifdef DEBUG
-        printf("Point(%f, %f):\n", sum_sumx/sum, sum_sumy/sum);
-#endif
-
-    }
-
-    imshow("h", img);
-    imshow("w", img2);
-
-    //imshow("img1", img1);
-    waitKey(0);
-    system("pause");
-    return 0;
-}
-
 int LaserPointExtract(Mat imageInput)
 {
     cv::namedWindow("h", CV_WINDOW_NORMAL | CV_WINDOW_FREERATIO | CV_GUI_EXPANDED);//CV_WINDOW_NORMAL
     cv::namedWindow("w", CV_WINDOW_NORMAL | CV_WINDOW_FREERATIO | CV_GUI_EXPANDED);
 
-    //ofstream of1, of2;
-    //of1.open("x.txt", ios::trunc);
-    //of2.open("y.txt", ios::trunc);
-    Mat img1, img2;
-    //imageInput = imread("./twoline/Left.bmp");
-    //imageInput = imread("./twoline/Left_wheel.bmp");
+    //img1:提取完成的激光线
+    Mat img1;
+    //img2:GaussianBlur后的图像
+    Mat img2;
+
     cvtColor(imageInput, imageInput, CV_RGB2GRAY);
     //对图像进行平滑处理
     GaussianBlur(imageInput, imageInput, Size(3, 3), 0);
@@ -346,8 +273,6 @@ int LaserPointExtract(Mat imageInput)
     imshow("w", img2);
     imwrite("./Leftline_wheel.bmp", imageInput);
 
-    //imshow("img1", img1);
-    //waitKey(0);
     system("pause");
     return 0;
 }
@@ -356,18 +281,22 @@ int LaserPointExtract(Mat imageInput)
 //param1:输入的图像
 //param2:输出的激光点
 ///再下一步，对激光点做逐一匹配
-int LaserPointExtract_Zhang(Mat *imageInput, Mat *imageOutput, std::vector<cv::Point2d> &output_points, int dev_num)
+int LaserPointExtract_Zhang(Mat *imageInput, std::vector<cv::Point2d> &output_points, int dev_num)
 {
     printf("\n\n\nLaserPointExtract_zhang\n");
     //cv::namedWindow("h", CV_WINDOW_NORMAL | CV_WINDOW_FREERATIO | CV_GUI_EXPANDED);//CV_WINDOW_NORMAL
     //cv::namedWindow("w", CV_WINDOW_NORMAL | CV_WINDOW_FREERATIO | CV_GUI_EXPANDED);
 
-    Mat img1, img2;
+    //img1:提取完成的激光线
+    Mat img1;
+    //img2:GaussianBlur后的图像
+    Mat img2;
 
     cvtColor(*imageInput, *imageInput, CV_RGB2GRAY);
     //对图像进行平滑处理
     GaussianBlur(*imageInput, *imageInput, Size(3, 3), 0);
     imageInput->copyTo(img2);
+
     //图像的二值化,  3==THRESH_TRUNC
     threshold(*imageInput, *imageInput, BRIGHTNESS_THRESHHOLD/*95*/, 255, THRESH_BINARY);
 
@@ -459,14 +388,6 @@ int LaserPointExtract_Zhang(Mat *imageInput, Mat *imageOutput, std::vector<cv::P
     free(strname);
 #endif
 
-    //h:提取完成的激光线
-    ////imshow("zhang-suen细化算法输入", *imageInput);
-    //w:GaussianBlur后的图像
-    //imshow("w", img2);
-    //imwrite("./Rightline_wheel.bmp", *imageInput);
-
-
-    ////imshow("输出的结果", img1);
     //waitKey(0);
     return 0;
 }

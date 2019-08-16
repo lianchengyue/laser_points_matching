@@ -28,6 +28,7 @@
 
 int CalcDepthFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts)
 {
+    //打印图像中激光点的值
     #if 0
     for (int ii = 0; ii < HEIGHT; ii++)
     {
@@ -45,8 +46,8 @@ int CalcDepthFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts)
     double baseline = 400;//单位: mm
     double fx = 2232.550777775964;
     double fy = 2231.856456030659;
-    double cx = 2232.550777775964;
-    double cy = 2232.550777775964;
+    double cx = 669.3747410537889;
+    double cy = 473.3409386246501;
 
     //视差
     cv::Mat Disparity(HEIGHT, WIDTH, CV_64FC1, cv::Scalar(0));  //CV_8U
@@ -132,7 +133,7 @@ int CalcDisparityFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts, int pts_c
             double left_x = inputMatchedPts[ii].P2dMatchedSlice[jj].p2dPack[0].Pt2d.x;
             double right_x = inputMatchedPts[ii].P2dMatchedSlice[jj].p2dPack[1].Pt2d.x;
 
-            double MinusValue = right_x - left_x;
+            double MinusValue = left_x - right_x;
 
             //计算视差
             //modified by flq, 显示错误

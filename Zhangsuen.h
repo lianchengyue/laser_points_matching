@@ -9,6 +9,6 @@
 #include "opencv2/core/utility.hpp"
 
 int LaserPointExtract(cv::Mat imageInput);
-int LaserPointExtract_Zhang(cv::Mat *imageInput, cv::Mat *imageOutput, std::vector<cv::Point2d> &points, int dev_num);
+int LaserPointExtract_Zhang(cv::Mat *imageInput, std::vector<cv::Point2d> &points, int dev_num);
 
 #endif // ZHANGSUEN_H
