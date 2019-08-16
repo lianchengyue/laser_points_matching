@@ -162,7 +162,7 @@ int AlignedInputLaserPointsCnt(UnMatchedPoints *nSlice0, int camID)
         total_input_pts_cnt += nSlice0[ii].Slice.size();
 
     }
-    printf("\n输入图像%d中,有%d对匹配点\n\n", camID, total_input_pts_cnt);
+    printf("\n输入图像%d中,有%d个激光点\n\n", camID, total_input_pts_cnt);
 
     return total_input_pts_cnt;
 }
@@ -178,7 +178,7 @@ int MatchedPointsCnt(BeMatchedPoints *outputSlice)
         total_matched_pts_cnt += outputSlice[ii].P2dMatchedSlice.size();
 
     }
-    printf("\n总共有%d对匹配点\n\n", total_matched_pts_cnt);
+    printf("\n该次匹配中，总计有%d对匹配点\n\n", total_matched_pts_cnt);
 
     return total_matched_pts_cnt;
 }

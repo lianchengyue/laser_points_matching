@@ -17,7 +17,7 @@ int Calc3DFromDisparity(DisparityAndBelonging &disp_belonging, int pts_cnt);
 void customizeReprojectImageTo3D( cv::InputArray _disparity,
                              cv::OutputArray __3dImage, cv::InputArray _Qmat,
                              bool handleMissingValues, int dtype );
-void customizeReprojectImageTo3D2(DisparityAndBelonging disp_belonging,
+int customizeReprojectImageTo3D2(DisparityAndBelonging disp_belonging,
                              XYZAndBelonging xyz_belonging, cv::InputArray _Qmat,
                              bool handleMissingValues, int dtype );
 void saveXYZ(const char* filename, const cv::Mat& mat);

@@ -85,9 +85,9 @@ int RetrievePointCloud::GetP3dInFrame(FilteredP3d *f_p3d, int pts_cnt)
             continue;
         }
 
-        tempPts.x = (int)f_p3d[i].filterd_p3d.x;
-        tempPts.y = (int)f_p3d[i].filterd_p3d.y;//-100;
-        tempPts.z = (int)f_p3d[i].filterd_p3d.z;///10;
+        tempPts.x = (int)f_p3d[i].filterd_p3d.x/16;
+        tempPts.y = (int)f_p3d[i].filterd_p3d.y/16;//-100;
+        tempPts.z = (int)f_p3d[i].filterd_p3d.z/160;///10;
 
         //上色
         if(0 == f_p3d[i].fP3dBelonging % 4)

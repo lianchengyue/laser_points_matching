@@ -136,16 +136,13 @@ int CalcDisparityFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts, int pts_c
 
             //计算视差
             //modified by flq, 显示错误
-            //disp_belonging.Disparity.at<double>(ii, round(left_x)) =  MinusValue;
-            //disp_belonging.DispBelonging[ii][(int)round(left_x)] = inputMatchedPts[ii].P2dMatchedSlice[jj].belonging;
             disp_belonging.Disparity.at<double>(ii, round(left_x)) =  MinusValue;
             disp_belonging.DispBelonging[ii*WIDTH + (int)round(left_x)] = inputMatchedPts[ii].P2dMatchedSlice[jj].belonging;
 
-
+            #ifdef DEBUG
             printf("disp Value at point(%lf,%d)=%lf\n\n", left_x, ii, MinusValue);
-            //belonging OK
             printf("disp belonging at point(%lf,%d)=%d\n\n", left_x, ii, disp_belonging.DispBelonging[ii*WIDTH + (int)round(left_x)]);
-
+            #endif
 
         }
     }
@@ -212,7 +209,7 @@ int Calc3DFromDisparity(DisparityAndBelonging &disp_belonging, int pts_cnt)
     customizeReprojectImageTo3D(disp_belonging.Disparity, xyz, MatQ, true, CV_64FC3);  //param5: CV_32FC3; CV_16SC3, CV_32SC3, CV_32FC3
     #else
     xyz_belonging.XYZ = cv::Mat::zeros(disp_belonging.Disparity.size(), CV_64FC3);
-    customizeReprojectImageTo3D2(disp_belonging, xyz_belonging, MatQ, true, CV_64FC3);  //param5: CV_32FC3; CV_16SC3, CV_32SC3, CV_32FC3
+    int pts_num = customizeReprojectImageTo3D2(disp_belonging, xyz_belonging, MatQ, true, CV_64FC3);  //param5: CV_32FC3; CV_16SC3, CV_32SC3, CV_32FC3
     #endif
 #endif
     #ifdef WITHOUT_STRUCT
@@ -222,7 +219,9 @@ int Calc3DFromDisparity(DisparityAndBelonging &disp_belonging, int pts_cnt)
     #endif
     //saveXYZ("XX.pcd", xyz);
 
-    cv::Point3d *outputP3d = new cv::Point3d[pts_cnt];
+    //pts_cnt: customizeReprojectImageTo3D2之前配对点的个数
+    //pts_num: customizeReprojectImageTo3D2之后配对点的个数
+    cv::Point3d *outputP3d = new cv::Point3d[pts_num];
     #ifdef WITHOUT_STRUCT
     filterXYZ(xyz, outputP3d);
     #else
@@ -230,20 +229,20 @@ int Calc3DFromDisparity(DisparityAndBelonging &disp_belonging, int pts_cnt)
     //filterXYZ(xyz_belonging.XYZ, outputP3d);
     //for Real
     FilteredP3d *fp3d;
-    fp3d = new FilteredP3d[pts_cnt];
+    fp3d = new FilteredP3d[pts_num];
 
     filterStructXYZ(xyz_belonging, fp3d);
 
-    for(int ii=0; ii < pts_cnt; ii++)
+    for(int ii=0; ii < pts_num; ii++)
     {
-        printf("第%d个点：(%f,%f,%f)\n", ii, fp3d[ii].filterd_p3d.x, fp3d[ii].filterd_p3d.y, fp3d[ii].filterd_p3d.z);
+        printf("第%d个点,属于第%d条激光线：坐标(%f,%f,%f)\n", ii,  fp3d[ii].fP3dBelonging, fp3d[ii].filterd_p3d.x, fp3d[ii].filterd_p3d.y, fp3d[ii].filterd_p3d.z);
     }
     #endif
 
     #ifdef PCL_PROCESS
     RetrievePointCloud *mPC = new RetrievePointCloud();
     //mPC->RetriveInit(outputP3d);
-    mPC->GetP3dInFrame(fp3d, pts_cnt);
+    mPC->GetP3dInFrame(fp3d, pts_num);
     #endif
 
     //free
@@ -428,7 +427,8 @@ void customizeReprojectImageTo3D(cv::InputArray _disparity,
     }
 }
 
-void customizeReprojectImageTo3D2(DisparityAndBelonging disp_belonging,
+//此过程中会有一部分错误的匹配点被置为-inf
+int customizeReprojectImageTo3D2(DisparityAndBelonging disp_belonging,
                              XYZAndBelonging xyz_belonging, cv::InputArray _Qmat,
                              bool handleMissingValues, int dtype )
 {
@@ -517,12 +517,6 @@ void customizeReprojectImageTo3D2(DisparityAndBelonging disp_belonging,
         for( x = 0; x < cols; x++, qx += q[0][0], qy += q[1][0], qz += q[2][0], qw += q[3][0] )
         {
             double d = sptr[x];
-            double iW = 1./(qw + q[3][2]*d);
-            double X = (qx + q[0][2]*d)*iW;
-            double Y = (qy + q[1][2]*d)*iW;
-            double Z = (qz + q[2][2]*d)*iW;
-            if( fabs(d-minDisparity) <= FLT_EPSILON )
-                Z = bigZ;
 
             //added for 激光点以外的点设为0, not for -inf
             if( 0 == d)
@@ -530,8 +524,17 @@ void customizeReprojectImageTo3D2(DisparityAndBelonging disp_belonging,
                 dptr[x*3] =   0;
                 dptr[x*3+1] = 0;
                 dptr[x*3+2] = 0;
+
+                continue;
             }
             //added end
+
+            double iW = 1./(qw + q[3][2]*d);
+            double X = (qx + q[0][2]*d)*iW;
+            double Y = (qy + q[1][2]*d)*iW;
+            double Z = (qz + q[2][2]*d)*iW;
+            if( fabs(d-minDisparity) <= FLT_EPSILON )
+                Z = bigZ;
 
             dptr[x*3] =   (double)X;
             dptr[x*3+1] = (double)Y;
@@ -567,31 +570,19 @@ void customizeReprojectImageTo3D2(DisparityAndBelonging disp_belonging,
                 int ival = cvRound(dptr[x]);
                 dptr0[x] = ival;
 
-                if(-2147483648 == dptr0[x]) ////-inf == -2147483648.000000
-                {
-                    dptr0[x] = 0;
-                }
-
-                //delete soon
-                #if 1
-                else if(0 == dptr0[x])
-                {
-                    ;
-                }
-                else
-                {
-                    //1:为3D点的归属赋值. 1 or 2任选一种
-                    //printf("dptr0[%d, %d]= %lf\n", x/3, y, dptr0[x]);
-                    //xyz_belonging.XYZBelonging[WIDTH*y + x/3] = disp_belonging.DispBelonging[WIDTH*y + x/3];
-                }
-                #endif
+                //1:为3D点的归属赋值. 1 or 2任选一种
+                //if(0 != dptr0[x])
+                //{
+                //    //1:为3D点的归属赋值. 1 or 2任选一种
+                //    printf("dptr0[%d, %d]= %lf\n", x/3, y, dptr0[x]);
+                //    xyz_belonging.XYZBelonging[WIDTH*y + x/3] = disp_belonging.DispBelonging[WIDTH*y + x/3];
+                //}
             }
 
             //2:为3D点的归属赋值. 1 or 2任选一种
             //WIDTH = cols =1280
             for(x = 0; x < cols; x++ )
             {
-
                 //belonging赋值
                 xyz_belonging.XYZBelonging[WIDTH*y + x] = disp_belonging.DispBelonging[WIDTH*y + x];
             }
@@ -604,6 +595,28 @@ void customizeReprojectImageTo3D2(DisparityAndBelonging disp_belonging,
     //xyz_belonging.XYZBelonging[959*WIDTH + 838] = disp_belonging.DispBelonging[959*WIDTH + 838];
     //printf("disp_belonging at point(838,959)=%d\n\n", disp_belonging.DispBelonging[959*WIDTH + 838]);
     //printf("XYZ at point(838,959)=%d\n\n", xyz_belonging.XYZBelonging[959*WIDTH + 838]);
+
+    //得到过滤后点的个数
+    int pts_num = 0;
+    //row: 960
+    for(int y = 0; y < xyz_belonging.XYZ.rows; y++)
+    {
+        //cols = 1280
+        for(int x = 0; x < xyz_belonging.XYZ.cols; x++)
+        {
+            //inputXYZ.ptr<double>(y), 指向inputXYZ第y行第一个元素的指针
+            if((0 != xyz_belonging.XYZ.ptr<double>(y)[3*x]) &&
+                (0 != xyz_belonging.XYZ.ptr<double>(y)[3*x+1]) &&
+                (0 != xyz_belonging.XYZ.ptr<double>(y)[3*x+1]))
+            {
+                pts_num++;
+            }
+        }
+    }
+
+    //customizeReprojectImageTo3D2后的匹配点个数
+    printf("xyz_belonging pts_num=%d\n", pts_num);
+    return pts_num;
 }
 
 void filterXYZ(cv::Mat& inputXYZ, cv::Point3d *outputP3d)
@@ -656,4 +669,7 @@ void filterStructXYZ(XYZAndBelonging &xyz_belonging, FilteredP3d *fp3d)
             }
         }
     }
+
+    //customizeReprojectImageTo3D2后的匹配点个数
+    printf("filterStructXYZ count_idx=%d\n", count_idx);
 }
