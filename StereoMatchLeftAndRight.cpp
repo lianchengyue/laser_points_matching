@@ -8,112 +8,81 @@
 
 #include "StereoMatchLeftAndRight.h"
 
-using namespace cv;
-
-
 //#define TEMP_SET_OK
 
 //Camera Matrix
 //[fx  s   x0]
 //[0   fy  y0]
 //[0   0   1 ]
+//入口函数
 int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR)
 {
+    cv::Mat *remapedImg0 = new cv::Mat(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3)); //CV_8U
+    cv::Mat *remapedImg1 = new cv::Mat(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3)); //CV_8U
 
-    Size imageSize = Size(WIDTH, HEIGHT);
+    //双目立体校正，使符合对极约束
+    DoStereoRectify(rgbImageL, rgbImageR, remapedImg0, remapedImg1);
+
+    //开始处理对齐后的图像
+    PostProcess(remapedImg0, remapedImg1);
+    return 0;
+}
+
+//双目立体校正，使符合对极约束
+int DoStereoRectify(cv::Mat *rgbImageL, cv::Mat *rgbImageR, cv::Mat *afterRemapImage0, cv::Mat *afterRemapImage1)
+{
+    cv::Size imageSize = cv::Size(WIDTH, HEIGHT);
 
     //图片
     cv::Mat grayImage0;
     cv::Mat grayImage1;
     cv::Mat rectifyImage0, rectifyImage1;
-    //输入的待提取图像
-    //cv::Mat *LaserInputImage0, *LaserInputImage1;
-    cv::Mat *LaserInputImage0 = new cv::Mat(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3)); //CV_8U
-    cv::Mat *LaserInputImage1 = new cv::Mat(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3)); //CV_8U
-
 
     //图像校正之后的裁剪
-    Rect validROIL;//图像校正之后，会对图像进行裁剪，这里的validROI就是指裁剪之后的区域
-    Rect validROIR;
+    cv::Rect validROIL;//图像校正之后，会对图像进行裁剪，这里的validROI就是指裁剪之后的区域
+    cv::Rect validROIR;
 
-    Mat mapLx, mapLy, mapRx, mapRy;     //映射表
-    Mat Rl, Rr, Pl, Pr, Q;              //校正旋转矩阵R，投影矩阵P 重投影矩阵Q
+    cv::Mat mapLx, mapLy, mapRx, mapRy;     //映射表
+    cv::Mat Rl, Rr, Pl, Pr, Q;              //校正旋转矩阵R，投影矩阵P 重投影矩阵Q
 
-#ifdef TEMP_SET_OK  //#if 0 //tqq
-    //==========================
-    Mat cameraMatrixL = (Mat_<double>(3, 3)
+    //标定得到的内外参
+    cv::Mat cameraMatrixL = (cv::Mat_<double>(3, 3)
                          <<
                          2232.550777775964, 0, 669.3747410537889,
                          0, 2231.856456030659, 473.3409386246501,
                          0, 0, 1);
-    Mat distCoeffL = (Mat_<double>(5, 1)
+    cv::Mat distCoeffL = (cv::Mat_<double>(5, 1)
                          <<
                          -0.09435279920653783, 0.2562075510521074, 0.0001898762951137649, 0.0005216752373549194, -0.7544675722826982);
 
-    Mat cameraMatrixR = (Mat_<double>(3, 3)
+    cv::Mat cameraMatrixR = (cv::Mat_<double>(3, 3)
                          <<
                          2223.192609925644, 0, 625.0792794020214,
                          0, 2222.866016106315, 482.1136582945432,
                          0, 0, 1);
-    Mat distCoeffR = (Mat_<double>(5, 1)
+    cv::Mat distCoeffR = (cv::Mat_<double>(5, 1)
                          <<
                          -0.08759498549994428, 0.09840725698052433, 0.0005933796478505113, 0.0006947082161594437, 0.4275222788377662);
 
-    Mat T = (Mat_<double>(3, 1)
-                         <<
-                         -400.8089497973307,
-                         3.029050638495658,
-                         103.0676306673946);//T平移向量
-
-    Mat R = (Mat_<double>(3, 3)
-                         <<
-                         0.8854761775039734, 0.006298879218860637, 0.4646420807390759,
-                         -0.01139125736642908, 0.9999018756171907, 0.008153428287293096,
-                         -0.4645451305616748, -0.012512524038357, 0.8854610428548656);//R 旋转矩阵
-#else
-    //real
-    //==========================
-    Mat cameraMatrixL = (Mat_<double>(3, 3)
-                         <<
-                         2232.550777775964, 0, 669.3747410537889,
-                         0, 2231.856456030659, 473.3409386246501,
-                         0, 0, 1);
-    Mat distCoeffL = (Mat_<double>(5, 1)
-                         <<
-                         -0.09435279920653783, 0.2562075510521074, 0.0001898762951137649, 0.0005216752373549194, -0.7544675722826982);
-
-    Mat cameraMatrixR = (Mat_<double>(3, 3)
-                         <<
-                         2223.192609925644, 0, 625.0792794020214,
-                         0, 2222.866016106315, 482.1136582945432,
-                         0, 0, 1);
-    Mat distCoeffR = (Mat_<double>(5, 1)
-                         <<
-                         -0.08759498549994428, 0.09840725698052433, 0.0005933796478505113, 0.0006947082161594437, 0.4275222788377662);
-
-    Mat T = (Mat_<double>(3, 1)
+    cv::Mat T = (cv::Mat_<double>(3, 1)
                          <<
                          6.5399539369845607e+00,
                          -6.7033329436584927e+02,
                          1.6347222727009409e+02);//T平移向量
 
-    Mat R = (Mat_<double>(3, 3)
+    cv::Mat R = (cv::Mat_<double>(3, 3)
                          <<
                          9.9888958964013941e-01, 1.2919080759919396e-02,
                          4.5306567524725061e-02, -3.4550520051047279e-02,
                          8.5465602738265134e-01, 5.1804375917745304e-01,
                          -3.2028881853039620e-02, -5.1903388349010837e-01,
                          8.5415336943456510e-01);//R 旋转矩阵
-#endif
 
-
-    /*
-    立体校正
-    */
+    //立体校正
     //calc: Rl, Rr, Pl, Pr, Q
     //alpha-拉伸参数。如果设置为负或忽略，将不进行拉伸。
     //如果设置为0，那么校正后图像只有有效的部分会被显示（没有黑色的部分），如果设置为1，那么就会显示整个图像。设置为0~1之间的某个值，其效果也居于两者之间。
-    stereoRectify(cameraMatrixL, distCoeffL, cameraMatrixR, distCoeffR, imageSize, R, T, Rl, Rr, Pl, Pr, Q, CALIB_ZERO_DISPARITY,
+    stereoRectify(cameraMatrixL, distCoeffL, cameraMatrixR, distCoeffR, imageSize, R, T, Rl, Rr, Pl, Pr, Q, cv::CALIB_ZERO_DISPARITY,
         1/***-1***/, imageSize, &validROIL, &validROIR);
 
     std::cout << "cameraMatrixL"  << cameraMatrixL << std::endl;
@@ -137,24 +106,15 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR)
     //2：寻找左图图像上的变换矩阵H1，使得变换后图像上对应点之间的视差最小化。
     //https://blog.csdn.net/hit1524468/article/details/79782685
     {
-        Mat H1, H2;
+        cv::Mat H1, H2;
         ///计算单应性矩阵, out:H1，H2
         //stereoRectifyUncalibrated(Mat(allimgpt[0]), Mat(allimgpt[1]), F, imageSize, H1, H2, 3);
-        #ifdef TEMP_SET_OK  //if 0 //tqq
-        H1 = (Mat_<double>(3, 3) << 0.006801632814421445, -0.0003400000458125603, 2.275447173667343,
-                -0.0005055530124645543, 0.008693998613745389, 0.5830113816035709,
-                -9.616137741016181e-07, -3.086902949154104e-08, 0.009392761548429435);
-        H2 = (Mat_<double>(3, 3) << 1.077230131632731, -0.007230050172134148, -45.95686016232344,
-                0.06465104396461532, 0.9995886045403541, -41.17919831672373,
-                0.0001207072724367381, -8.101515268017261e-07, 0.9231362183733525);
-        #else
-        H1 = (Mat_<double>(3, 3) << -2.189435000927211e-05, 0.005198046968966729, -5.974651645774721,
+        H1 = (cv::Mat_<double>(3, 3) << -2.189435000927211e-05, 0.005198046968966729, -5.974651645774721,
                 -0.0054667715764329, 0.0002526204691698786, 0.1663784814071454,
                 7.470224965310847e-08, 7.58412151497686e-07, -0.005811322477235398);
-        H2 = (Mat_<double>(3, 3) << 0.009932963123129343, -0.9282435968593886, 1079.199830093704,
+        H2 = (cv::Mat_<double>(3, 3) << 0.009932963123129343, -0.9282435968593886, 1079.199830093704,
                 0.9993673216478258, 0.06447456826965205, -190.5428786240415,
                 -1.19881155519485e-06, 0.0001120299286483292, 0.9469928736441267);
-        #endif
 
         Rl = cameraMatrixL.inv() * H1 * cameraMatrixL;
         Rr = cameraMatrixR.inv() * H2 * cameraMatrixR;
@@ -165,9 +125,7 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR)
     initUndistortRectifyMap(cameraMatrixL, distCoeffL, Rl, Pl, imageSize, CV_32FC1, mapLx, mapLy);//before CV_32FC1, after CV_16SC2
     initUndistortRectifyMap(cameraMatrixR, distCoeffR, Rr, Pr, imageSize, CV_32FC1, mapRx, mapRy);
 
-    /*
-    读取图片
-    */
+    //读取图片
     //rgbImageL = imread("./twoline/Left0.bmp", CV_LOAD_IMAGE_COLOR);
     cvtColor(*rgbImageL, grayImage0, CV_BGR2GRAY);
     //rgbImageR = imread("./twoline/Right0.bmp", CV_LOAD_IMAGE_COLOR);
@@ -176,28 +134,28 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR)
     imshow("ImageL Before Rectify", grayImage0);
     imshow("ImageR Before Rectify", grayImage1);
 
-    /*
-    经过remap之后，左右相机的图像已经共面并且行对准了
-    */
+    //经过remap之后，左右相机的图像已经共面并且行对准了
     //output: rectifyImage0, rectifyImage1
-    remap(grayImage0, rectifyImage0, mapLx, mapLy, INTER_LINEAR);
-    remap(grayImage1, rectifyImage1, mapRx, mapRy, INTER_LINEAR);
+    remap(grayImage0, rectifyImage0, mapLx, mapLy, cv::INTER_LINEAR);
+    remap(grayImage1, rectifyImage1, mapRx, mapRy, cv::INTER_LINEAR);
 
-    /*
-    把校正结果显示出来
-    */
-    Mat rgbrectifyImage0, rgbrectifyImage1;
+    //把校正结果显示出来
+    cv::Mat rgbrectifyImage0, rgbrectifyImage1;
     cvtColor(rectifyImage0, rgbrectifyImage0, CV_GRAY2BGR);  //伪彩色图
     cvtColor(rectifyImage1, rgbrectifyImage1, CV_GRAY2BGR);
 
     //单独显示
-    //rectangle(rgbrectifyImage0, validROIL, Scalar(0, 0, 255), 3, 8);
-    //rectangle(rgbrectifyImage1, validROIR, Scalar(0, 0, 255), 3, 8);
+    //rectangle(rgbrectifyImage0, validROIL, cv::Scalar(0, 0, 255), 3, 8);
+    //rectangle(rgbrectifyImage1, validROIR, cv::Scalar(0, 0, 255), 3, 8);
     imshow("ImageL After Rectify", rgbrectifyImage0);
     imshow("ImageR After Rectify", rgbrectifyImage1);
+#ifdef IMG_DUMP
+    imwrite("remaped0.jpg", rgbrectifyImage0);
+    imwrite("remaped1.jpg", rgbrectifyImage1);
+#endif
 
     //显示在同一张图上
-    Mat canvas;
+    cv::Mat canvas;
     double sf;
     int w, h;
 
@@ -220,20 +178,20 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR)
 
     ////Display
     //左/上图像画到画布上
-    Mat canvasPart = !isVerticalStereo ?
-                        canvas(Rect(w * 0, 0, w, h)) : canvas(Rect(0, h*0, w, h));  //得到画布的一部分
-    resize(rgbrectifyImage0, canvasPart, canvasPart.size(), 0, 0, INTER_AREA);     //把图像缩放到跟canvasPart一样大小
-    Rect vroiL(cvRound(validROIL.x*sf), cvRound(validROIL.y*sf),                //获得被截取的区域
+    cv::Mat canvasPart = !isVerticalStereo ?
+                        canvas(cv::Rect(w * 0, 0, w, h)) : canvas(cv::Rect(0, h*0, w, h));  //得到画布的一部分
+    resize(rgbrectifyImage0, canvasPart, canvasPart.size(), 0, 0, cv::INTER_AREA);     //把图像缩放到跟canvasPart一样大小
+    cv::Rect vroiL(cvRound(validROIL.x*sf), cvRound(validROIL.y*sf),                //获得被截取的区域
         cvRound(validROIL.width*sf), cvRound(validROIL.height*sf));
-    //rectangle(canvasPart, vroiL, Scalar(0, 0, 255), 3, 8);                      //画上一个矩形
+    //rectangle(canvasPart, vroiL, cv::Scalar(0, 0, 255), 3, 8);                      //画上一个矩形
     std::cout << "Painted ImageL" << std::endl;
 
     //右/下图像画到画布上
     canvasPart = !isVerticalStereo ?
-                canvas(Rect(w * 1, 0, w, h)) : canvas(Rect(0, h*1, w, h));            //获得画布的另一部分
+                canvas(cv::Rect(w * 1, 0, w, h)) : canvas(cv::Rect(0, h*1, w, h));            //获得画布的另一部分
 
-    resize(rgbrectifyImage1, canvasPart, canvasPart.size(), 0, 0, INTER_LINEAR);
-    Rect vroiR(cvRound(validROIR.x * sf), cvRound(validROIR.y*sf),
+    resize(rgbrectifyImage1, canvasPart, canvasPart.size(), 0, 0, cv::INTER_LINEAR);
+    cv::Rect vroiR(cvRound(validROIR.x * sf), cvRound(validROIR.y*sf),
         cvRound(validROIR.width * sf), cvRound(validROIR.height * sf));
 
     std::cout << "Painted ImageR" << std::endl;
@@ -242,24 +200,28 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR)
     if(!isVerticalStereo)
     {
         for (int i = 0; i < canvas.rows; i += 16)
-            line(canvas, Point(0, i), Point(canvas.cols, i), Scalar(0, 255, 0), 1, 8);
+            line(canvas, cv::Point(0, i), cv::Point(canvas.cols, i), cv::Scalar(0, 255, 0), 1, 8);
         imshow("rectified", canvas);
     }
     else
     {
         for (int i = 0; i < canvas.rows; i += 16)
-            line(canvas, Point(i, 0), Point(i, canvas.rows), Scalar(0, 255, 0), 1, 8);
+            line(canvas, cv::Point(i, 0), cv::Point(i, canvas.rows), cv::Scalar(0, 255, 0), 1, 8);
         imshow("rectified", canvas);
     }
 
+    *afterRemapImage0 = rgbrectifyImage0.clone();
+    *afterRemapImage1 = rgbrectifyImage1.clone();
 
+    return 0;
+}
+
+//处理对齐后的图像
+int PostProcess(cv::Mat *inputImg0, cv::Mat *inputImg1)
+{
     ///开始提取激光点
-    *LaserInputImage0 = rgbrectifyImage0.clone();
-    *LaserInputImage1 = rgbrectifyImage1.clone();
-
-
-    std::vector<Point2d>  img0_pts;
-    std::vector<Point2d>  img1_pts;
+    std::vector<cv::Point2d>  img0_pts;
+    std::vector<cv::Point2d>  img1_pts;
 
     //clear vector here
     //added by flq,  清空临时的vector
@@ -267,14 +229,14 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR)
     std::vector<cv::Point2d>().swap(img1_pts);
 #if 0
     //Zhang方法
-    LaserPointExtract_Zhang(LaserInputImage0, img0_pts, 0); //rgbrectifyImage0
+    LaserPointExtract_Zhang(inputImg0, img0_pts, 0); //rgbrectifyImage0
 
-    LaserPointExtract_Zhang(LaserInputImage1, img1_pts, 1); //rgbrectifyImage1
+    LaserPointExtract_Zhang(inputImg1, img1_pts, 1); //rgbrectifyImage1
 #else
     //Steger方法
-    LaserPointExtract_Steger(LaserInputImage0, img0_pts, 0); //rgbrectifyImage0
+    LaserPointExtract_Steger(inputImg0, img0_pts, 0); //rgbrectifyImage0
 
-    LaserPointExtract_Steger(LaserInputImage1, img1_pts, 1); //rgbrectifyImage1
+    LaserPointExtract_Steger(inputImg1, img1_pts, 1); //rgbrectifyImage1
 #endif
 
     //Reference Line
@@ -293,8 +255,6 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR)
     //激光线条匹配
     EpipolarMatch(img0_ref, img1_ref);
 
-    waitKey(0);
-
+    cv::waitKey(0);
     return 0;
 }
-

@@ -203,7 +203,7 @@ int Calc3DFromDisparity(DisparityAndBelonging &disp_belonging, int pts_cnt)
     //手动重写该函数,抛弃所有的(0,0)点
 #if 0
     //Auto
-    reprojectImageTo3D(disp, xyz, MatQ, /*true, */false); //在实际求距离时，ReprojectTo3D出来的X / W, Y / W, Z / W都要乘以16(也就是W除以16)，才能得到正确的三维坐标信息。
+    reprojectImageTo3D(disp_belonging.Disparity, xyz, MatQ, /*true, */false); //在实际求距离时，ReprojectTo3D出来的X / W, Y / W, Z / W都要乘以16(也就是W除以16)，才能得到正确的三维坐标信息。
 #else
     //Manual
     #ifdef WITHOUT_STRUCT
