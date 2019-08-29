@@ -18,6 +18,7 @@ DEFINES+= \
 #    MATCH_COMPARE \
 #    统计激光点的个数
     POINTS_STATISTICES \
+    IMG_DUMP
 
 HEADERS += \
     Zhangsuen.h \
@@ -28,9 +29,9 @@ HEADERS += \
     ReferenceLine.h \
     SortAlgorithm.h \
     DisparityAndDepth.h \
-    RetrievePointCloud.h \
     DisplayImg.h \
-    BindAlgorithm.h
+    BindAlgorithm.h \
+    RetrieveAndProcP3d.h
 
 SOURCES += \
     Zhangsuen.cpp \
@@ -41,9 +42,9 @@ SOURCES += \
     ReferenceLine.cpp \
     SortAlgorithm.cpp \
     DisparityAndDepth.cpp \
-    RetrievePointCloud.cpp \
     DisplayImg.cpp \
-    BindAlgorithm.cpp
+    BindAlgorithm.cpp \
+    RetrieveAndProcP3d.cpp
 
 INCLUDEPATH += \
 #先PCL后OPENCV，防止FLANN冲突

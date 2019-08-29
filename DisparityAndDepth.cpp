@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "DisparityAndDepth.h"
-#include "RetrievePointCloud.h"
+#include "RetrieveAndProcP3d.h"
 
 /***************根据匹配点，得到视差与深度************/
 
@@ -54,7 +54,7 @@ int CalcDepthFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts)
 
     cv::Point3d *pp3d = new cv::Point3d[WIDTH * HEIGHT];
     #ifdef PCL_PROCESS
-    RetrievePointCloud *mPC = new RetrievePointCloud();
+    RetrieveAndProcP3d *mPC = new RetrieveAndProcP3d();
     #endif
 
     for (int ii = 0; ii < HEIGHT; ii++)
@@ -102,7 +102,7 @@ int CalcDepthFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts)
 
     imshow("Disparity", Disparity);
     #ifdef PCL_PROCESS
-    mPC->RetriveInit(pp3d);
+    mPC->GetP3dInFrame(pp3d);
     #endif
 
     return 0;
@@ -141,8 +141,7 @@ int CalcDisparityFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts, int pts_c
             disp_belonging.DispBelonging[ii*WIDTH + (int)round(left_x)] = inputMatchedPts[ii].P2dMatchedSlice[jj].belonging;
 
             #ifdef DEBUG
-            printf("disp Value at point(%lf,%d)=%lf\n\n", left_x, ii, MinusValue);
-            printf("disp belonging at point(%lf,%d)=%d\n\n", left_x, ii, disp_belonging.DispBelonging[ii*WIDTH + (int)round(left_x)]);
+            printf("视差 at point(%lf,%d)=%lf, 属于第%d条激光\n", left_x, ii, MinusValue, disp_belonging.DispBelonging[ii*WIDTH + (int)round(left_x)]);
             #endif
 
         }
@@ -161,7 +160,7 @@ int CalcDisparityFromBeMatchedPoints(BeMatchedPoints *inputMatchedPts, int pts_c
 //https://blog.csdn.net/Gordon_Wei/article/details/86319058
  * reprojectImageTo3D的说明
 
-    cx​、cycy​为左相机主点在图像中的坐标，
+    cx​、cy​为左相机主点在图像中的坐标，
     ff为焦距，
     Tx​为两台相机投影中心间的平移（负值），
     c′xcx′​是右相机主点在图像中的坐标
@@ -241,12 +240,13 @@ int Calc3DFromDisparity(DisparityAndBelonging &disp_belonging, int pts_cnt)
     #endif
 
     #ifdef PCL_PROCESS
-    RetrievePointCloud *mPC = new RetrievePointCloud();
-    //mPC->RetriveInit(outputP3d);
-    mPC->GetP3dInFrame(fp3d, pts_num);
+    //RetrieveAndProcP3d *mPC = new RetrieveAndProcP3d();
+    ////mPC->GetP3dInFrame(outputP3d);
+    //mPC->GetP3dInFrame(fp3d, pts_num);
     #endif
 
     //free
+    //free(mPC);
     free(outputP3d);
     free(xyz_belonging.XYZBelonging);
     free(fp3d);

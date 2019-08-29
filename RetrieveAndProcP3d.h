@@ -1,5 +1,5 @@
-#ifndef RETRIEVEPOINTCLOUD
-#define RETRIEVEPOINTCLOUD
+#ifndef RETRIEVEANDPROCP3D
+#define RETRIEVEANDPROCP3D
 
 #include "Utils.h"
 
@@ -32,16 +32,14 @@
 #include <pcl/segmentation/sac_segmentation.h>
 
 
-class RetrievePointCloud
+class RetrieveAndProcP3d
 {
 public:
-    RetrievePointCloud();
-    ~RetrievePointCloud();
+    RetrieveAndProcP3d();
+    ~RetrieveAndProcP3d();
 
-    int RetriveInit(/*cv::Point3_<float>*/cv::Point3d *point_coordinate);
+    int GetP3dInFrame(/*cv::Point3_<float>*/cv::Point3d *point_coordinate);
     int GetP3dInFrame(FilteredP3d *f_p3d, int pts_cnt);
-
-//    pcl::visualization::CloudViewer viewer;
 
 private:
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr Lasercloud;
@@ -50,4 +48,4 @@ private:
 };
 #endif //#ifdef PCL_PROCESS
 
-#endif //RETRIEVEPOINTCLOUD
+#endif //RETRIEVEANDPROCP3D

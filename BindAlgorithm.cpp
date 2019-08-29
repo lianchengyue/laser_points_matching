@@ -65,7 +65,9 @@ int MatchAndBindAlgorithm(std::vector<Point2dPack> &Slice0, std::vector<Point2dP
     size0 = Slice0.size();
     size1 = Slice1.size();
 #ifdef DEBUG
-    printf("Slice0.size=%d, Slice1.size=%d\n", size0, size1);
+    //打印每个slice(每一行)有几个点
+    //调试初期需要，后期删除，减少LOG打印量
+    //printf("Slice0.size=%d, Slice1.size=%d\n", size0, size1);
 #endif
 
     //遍历IMG0中的一个slice的值

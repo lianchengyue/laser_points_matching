@@ -1,4 +1,4 @@
-#include "RetrievePointCloud.h"
+#include "RetrieveAndProcP3d.h"
 #include <iostream>
 
 #include <pcl/io/pcd_io.h> //PCL的PCD格式文件的输入输出头文件
@@ -9,26 +9,19 @@
 using namespace std;
 
 #ifdef PCL_PROCESS
-///typedef pcl::PointXYZ point;
-///typedef pcl::PointXYZRGBA pointcolor;
-
-//typedef pcl::PointXYZRGB PointT;
-//typedef pcl::PointCloud<PointT> PointCloud;
-
-
-RetrievePointCloud::RetrievePointCloud()
+RetrieveAndProcP3d::RetrieveAndProcP3d()
 : viewer ("Wheel Viewer"),
   Lasercloud(new pcl::PointCloud<pcl::PointXYZRGB>)
 {
     //pcl::PointCloud<pcl::PointXYZRGB>::Ptr Lasercloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 }
 
-RetrievePointCloud::~RetrievePointCloud()
+RetrieveAndProcP3d::~RetrieveAndProcP3d()
 {
 
 }
 
-int RetrievePointCloud::RetriveInit(cv::Point3d *point_coordinate)
+int RetrieveAndProcP3d::GetP3dInFrame(cv::Point3d *point_coordinate)
 {
     for(int i=0; i</*960*1280*//*malloc_usable_size(point_coordinate)/sizeof(*point_coordinate)*/3167; i++) //height
     {
@@ -75,7 +68,7 @@ int RetrievePointCloud::RetriveInit(cv::Point3d *point_coordinate)
 }
 
 //filtered 3d points input
-int RetrievePointCloud::GetP3dInFrame(FilteredP3d *f_p3d, int pts_cnt)
+int RetrieveAndProcP3d::GetP3dInFrame(FilteredP3d *f_p3d, int pts_cnt)
 {
     for(int i=0; i<pts_cnt; i++) //height
     {

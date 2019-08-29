@@ -253,9 +253,6 @@ int LaserPointExtract_Steger(cv::Mat *imageInput, std::vector<cv::Point2d> &p2d,
         p2d.push_back(point2d);
     }
 
-    //imshow("result", img0);
-    //waitKey(0);
-
     //灰度质心法
     //img: 高斯滤波后的图像
 #if 0 //tqq

@@ -375,7 +375,7 @@ int LaserPointExtract_Zhang(Mat *imageInput, std::vector<cv::Point2d> &output_po
 
 #ifdef IMG_DISPLAY
     //显示图像
-    cv::Mat disImg = cv::Mat::zeros(960, 1280, CV_8UC3);
+    cv::Mat disImg = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);
 
     for (int i = 0; i < output_points.size() - 1; i++)
     {
@@ -388,6 +388,5 @@ int LaserPointExtract_Zhang(Mat *imageInput, std::vector<cv::Point2d> &output_po
     free(strname);
 #endif
 
-    //waitKey(0);
     return 0;
 }

@@ -17,6 +17,8 @@
 //入口函数
 int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR)
 {
+    //if 0，用来解决内存泄漏问题
+#if 0
     cv::Mat *remapedImg0 = new cv::Mat(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3)); //CV_8U
     cv::Mat *remapedImg1 = new cv::Mat(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3)); //CV_8U
 
@@ -25,6 +27,19 @@ int StereoMatch(cv::Mat *rgbImageL, cv::Mat *rgbImageR)
 
     //开始处理对齐后的图像
     PostProcess(remapedImg0, remapedImg1);
+
+    free(remapedImg0);
+    free(remapedImg1);
+#else
+    cv::Mat remapedImg0 = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);
+    cv::Mat remapedImg1 = cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3);
+
+    //双目立体校正，使符合对极约束
+    DoStereoRectify(rgbImageL, rgbImageR, &remapedImg0, &remapedImg1);
+
+    //开始处理对齐后的图像
+    PostProcess(&remapedImg0, &remapedImg1);
+#endif
     return 0;
 }
 
@@ -255,6 +270,7 @@ int PostProcess(cv::Mat *inputImg0, cv::Mat *inputImg1)
     //激光线条匹配
     EpipolarMatch(img0_ref, img1_ref);
 
+    ///temporily moved by flq
     cv::waitKey(0);
     return 0;
 }
